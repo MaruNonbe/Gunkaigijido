@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>文教の森 AR 最終調整版</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
+        .clickable { pointer-events: auto; }
+        .menu { position: absolute; display: flex; flex-direction: column; gap: 4px; }
+        button { padding: 12px; border-radius: 8px; border: none; background: white; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .top-left { top: 10px; left: 10px; }
+        .ctrl-left { top: 35%; left: 10px; }
+        .ctrl-right { top: 35%; right: 10px; }
+        .bottom-bar { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        
+        /* ログパネル */
+        #log-console { 
+            position: absolute; top: 10px; right: 10px; width: 220px; height: 130px; 
+            background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace; font-size: 11px; padding: 8px; 
+            overflow-y: auto; pointer-events: none; border: 1px solid #0f0;
+        }
+        .val { color: #ff0; font-weight: bold; }
+    </style>
+</head>
+
+<body>
+    <div id="ui-layer">
+        <div id="log-console">
+            [STATUS] <span id="status-msg">起動中...</span><br>
+            [POS] X:<span id="val-px" class="val">0</span> Y:<span id="val-py" class="val">0</span> Z:<span id="val-pz" class="val">0</span><br>
+            [SCALE] <span id="val-sc" class="val">1.00</span><br>
+            --------------------
+            <div id="log-history"></div>
+        </div>
+
+        <div class="menu top-left clickable">
+            <button onclick="switchModel('all')">全体表示</button>
+            <button onclick="switchModel('kozakura')">小桜館</button>
+            <button onclick="switchModel('assembly1')">初代</button>
+            <button onclick="switchModel('assembly2')">二代目</button>
+        </div>
+
+        <div class="menu ctrl-left clickable">
+            <button onclick="moveModel('z', -1)">前へ (-Z)</button>
+            <button onclick="moveModel('z', 1)">後へ (+Z)</button>
+            <button onclick="moveModel('y', 1)">上へ (+Y)</button>
+            <button onclick="moveModel('y', -1)">下へ (-Y)</button>
+        </div>
+
+        <div class="menu ctrl-right clickable">
+            <button onclick="rotateModel(30)">右回転</button>
+            <button onclick="rotateModel(-30)">左回転</button>
+            <button onclick="scaleModel(2)">倍増(x2)</button>
+            <button onclick="scaleModel(0.5)">半分(x0.5)</button>
+            <button onclick="resetPos()" style="background:#ff9800; color:white;">位置リセット</button>
+        </div>
+
+        <div class="bottom-bar clickable">
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再読込</button>
+        </div>
+    </div>
+
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+        <a-entity id="ar-anchor" position="0 -1.6 -5" scale="1 1 1">
+            <a-entity id="main-model" gltf-model="all.glb"></a-entity>
+        </a-entity>
+        <a-camera gps-camera rotation-reader></a-camera>
+    </a-scene>
+
+    <script>
+        // 土屋さんの新しいファイル名に完璧に合わせました
+        const appData = {
+            all: "all.glb",
+            kozakura: "Gun.glb",
+            assembly1: "1st.glb",
+            assembly2: "2nd.glb"
+        };
+
+        const anchor = document.getElementById('ar-anchor');
+        const model = document.getElementById('main-model');
+
+        function updateLog(msg = "") {
+            const p = anchor.getAttribute('position');
+            const s = anchor.getAttribute('scale');
+            document.getElementById('val-px').innerText = p.x.toFixed(1);
+            document.getElementById('val-py').innerText = p.y.toFixed(1);
+            document.getElementById('val-pz').innerText = p.z.toFixed(1);
+            document.getElementById('val-sc').innerText = s.x.toFixed(2);
+            if(msg) {
+                const h = document.getElementById('log-history');
+                h.innerHTML = "> " + msg + "<br>" + h.innerHTML;
+            }
+        }
+
+        function switchModel(key) {
+            const fileName = appData[key];
+            model.setAttribute('gltf-model', fileName);
+            document.getElementById('status-msg').innerText = "読込中: " + fileName;
+            updateLog("切替: " + fileName);
+        }
+
+        function moveModel(ax, v) {
+            let p = anchor.getAttribute('position');
+            p[ax] += v;
+            anchor.setAttribute('position', p);
+            updateLog("移動 " + ax + ":" + v);
+        }
+
+        function rotateModel(d) {
+            let r = anchor.getAttribute('rotation');
+            r.y += d;
+            anchor.setAttribute('rotation', r);
+            updateLog("回転 " + d);
+        }
+
+        function scaleModel(f) {
+            let s = anchor.getAttribute('scale');
+            s.x *= f; s.y *= f; s.z *= f;
+            anchor.setAttribute('scale', s);
+            updateLog("倍率 x" + f);
+        }
+
+        function resetPos() {
+            anchor.setAttribute('position', '0 -1.6 -5');
+            anchor.setAttribute('scale', '1 1 1');
+            updateLog("リセット実行");
+        }
+
+        model.addEventListener('model-loaded', () => {
+            document.getElementById('status-msg').innerText = "読込成功！";
+            document.getElementById('status-msg').style.color = "#0f0";
+            updateLog("表示準備完了");
+        });
+
+        model.addEventListener('model-error', (e) => {
+            document.getElementById('status-msg').innerText = "ファイルNG";
+            document.getElementById('status-msg').style.color = "#f00";
+            updateLog("エラー: ファイル名を確認");
+        });
+    </script>
+</body>
+</html>
