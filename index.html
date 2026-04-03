@@ -3,156 +3,161 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR ログ保存版</title>
+    <title>文教の森 AR ログ解析版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; font-family: monospace; background: #000; }
-        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
         .menu { position: absolute; display: flex; flex-direction: column; gap: 4px; }
-        button { padding: 10px; border-radius: 5px; border: none; background: #eee; font-weight: bold; font-size: 11px; }
+        button { padding: 10px; border-radius: 8px; border: none; background: white; font-weight: bold; font-size: 12px; }
         .top-left { top: 10px; left: 10px; }
-        .ctrl-left { top: 30%; left: 10px; }
-        .ctrl-right { top: 30%; right: 10px; }
-        .bottom { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 8px; }
+        .ctrl-left { top: 35%; left: 10px; }
+        .ctrl-right { top: 35%; right: 10px; }
+        .bottom-bar { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
         
-        /* ログパネル */
+        /* ログ解析パネル */
         #log-panel { 
-            position: absolute; top: 10px; right: 10px; width: 240px; height: 180px; 
-            background: rgba(0,0,0,0.9); color: #0f0; font-size: 10px; padding: 10px; 
-            border: 1px solid #0f0; overflow-y: auto; pointer-events: none;
+            position: absolute; top: 10px; right: 10px; width: 240px; height: 160px; 
+            background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; 
+            overflow-y: auto; pointer-events: none; border: 1px solid #0f0; line-height: 1.4;
         }
-        .val { color: #ff0; }
+        .log-err { color: #ff4b4b; font-weight: bold; }
+        .log-ok { color: #00ff00; }
+        .log-info { color: #ffff00; }
     </style>
 </head>
+
 <body>
-    <div id="ui">
+    <div id="ui-layer">
         <div id="log-panel">
-            [FILE] <span id="log-file" class="val">---</span><br>
-            [STATUS] <span id="log-status" class="val">起動中</span><br>
-            [POS] X:<span id="log-px" class="val">0</span> Y:<span id="log-py" class="val">0</span> Z:<span id="log-pz" class="val">0</span><br>
-            [ROT] Y:<span id="log-ry" class="val">0</span>度<br>
-            [SCALE] <span id="log-sc" class="val">1.0</span><br>
-            --------------------------<br>
+            [FILE] <span id="log-file" class="log-info">---</span><br>
+            [STATUS] <span id="log-status">待機中...</span><br>
+            [POS] X:<span id="val-px">0</span> Y:<span id="val-py">0</span> Z:<span id="val-pz">0</span><br>
+            [SCALE] <span id="val-sc">1.00</span><br>
+            --------------------<br>
             <div id="log-history"></div>
         </div>
 
         <div class="menu top-left clickable">
-            <button onclick="switchModel('all')">全体</button>
-            <button onclick="switchModel('kozakura')">小桜館</button>
-            <button onclick="switchModel('assembly1')">初代</button>
-            <button onclick="switchModel('assembly2')">二代目</button>
+            <button onclick="switchModel('all')">全体(all.glb)</button>
+            <button onclick="switchModel('kozakura')">小桜館(Gun.glb)</button>
+            <button onclick="switchModel('assembly1')">初代(1st.glb)</button>
+            <button onclick="switchModel('assembly2')">二代目(2nd.glb)</button>
         </div>
 
         <div class="menu ctrl-left clickable">
-            <button onclick="move('z', -1)">前へ(-Z)</button>
-            <button onclick="move('z', 1)">後へ(+Z)</button>
-            <button onclick="move('y', 1)">上へ(+Y)</button>
-            <button onclick="move('y', -1)">下へ(-Y)</button>
-            <button onclick="move('x', -1)">左へ(-X)</button>
-            <button onclick="move('x', 1)">右へ(+X)</button>
+            <button onclick="moveModel('z', -1)">前へ</button>
+            <button onclick="moveModel('z', 1)">後へ</button>
+            <button onclick="moveModel('y', 1)">上へ (+Y)</button>
+            <button onclick="moveModel('y', -1)">下へ (-Y)</button>
         </div>
 
         <div class="menu ctrl-right clickable">
-            <button onclick="rotate(30)">右回転</button>
-            <button onclick="rotate(-30)">左回転</button>
-            <button onclick="scale(2)">拡大(x2)</button>
-            <button onclick="scale(0.5)">縮小(x0.5)</button>
-            <button onclick="resetAll()" style="background:#ff9800;">リセット</button>
+            <button onclick="rotateModel(30)">回転</button>
+            <button onclick="scaleModel(2)">拡大(x2)</button>
+            <button onclick="scaleModel(0.5)">縮小(x0.5)</button>
+            <button onclick="resetPos()" style="background:#ff9800; color:white;">リセット</button>
         </div>
 
-        <div class="bottom clickable">
-            <button onclick="downloadLog()" style="background:#4CAF50; color:white;">💾 ログを保存</button>
-            <button onclick="location.reload()" style="background:#f44336; color:white;">🔄 再起動</button>
+        <div class="bottom-bar clickable">
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再読込</button>
         </div>
     </div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <a-entity id="anchor" position="0 -1.6 -5" scale="1 1 1" rotation="0 0 0">
-            <a-entity id="main-model" gltf-model="all.glb"></a-entity>
+        <a-entity id="ar-anchor" position="0 -1.6 -5" scale="1 1 1">
+            <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
         <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
     <script>
-const appData = {
+        // GitHubの構成に基づいた最新のファイル名設定
+        const appData = {
             all: "all.glb",
-            kozakura: "Gun.glb",        // ← GitHubの「Gun.glb」に合わせました
+            kozakura: "Gun.glb",
             assembly1: "1st.glb",
             assembly2: "2nd.glb"
         };
 
-        let logData = []; // 保存用ログ配列
-        const anchor = document.getElementById('anchor');
+        const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
-        // ログを画面と配列に記録
-        function recordLog(msg) {
-            const now = new Date().toLocaleTimeString();
-            const pos = anchor.getAttribute('position');
-            const rot = anchor.getAttribute('rotation');
-            const sc = anchor.getAttribute('scale');
-            
-            // 画面表示更新
-            document.getElementById('log-px').innerText = pos.x.toFixed(2);
-            document.getElementById('log-py').innerText = pos.y.toFixed(2);
-            document.getElementById('log-pz').innerText = pos.z.toFixed(2);
-            document.getElementById('log-ry').innerText = rot.y.toFixed(0);
-            document.getElementById('log-sc').innerText = sc.x.toFixed(2);
-            
-            const fullMsg = `[${now}] ${msg} | P(${pos.x.toFixed(1)},${pos.y.toFixed(1)},${pos.z.toFixed(1)}) S:${sc.x.toFixed(2)}`;
-            const history = document.getElementById('log-history');
-            history.innerHTML = fullMsg + "<br>" + history.innerHTML;
-            
-            logData.push(fullMsg); // 保存用に蓄積
+        function addHistory(msg, isErr = false) {
+            const hist = document.getElementById('log-history');
+            const colorClass = isErr ? 'log-err' : '';
+            hist.innerHTML = `<span class="${colorClass}">> ${msg}</span><br>` + hist.innerHTML;
         }
 
         function switchModel(key) {
-            const file = appData[key];
-            document.getElementById('log-file').innerText = file;
+            const fileName = appData[key];
+            document.getElementById('log-file').innerText = fileName;
             document.getElementById('log-status').innerText = "読込中...";
-            model.setAttribute('gltf-model', file);
-            recordLog("モデル切替: " + key);
+            document.getElementById('log-status').className = "log-info";
+            
+            // 重要：一度モデルをクリアしてから再読込（読み込みエラーを防ぐ）
+            model.removeAttribute('gltf-model');
+            model.setAttribute('gltf-model', fileName);
+            
+            addHistory(`${key} の読込を開始しました`);
         }
 
-        function move(ax, v) { 
-            let p = anchor.getAttribute('position'); p[ax] += v; 
-            anchor.setAttribute('position', p); recordLog("移動: " + ax); 
-        }
-        function rotate(d) { 
-            let r = anchor.getAttribute('rotation'); r.y += d; 
-            anchor.setAttribute('rotation', r); recordLog("回転"); 
-        }
-        function scale(f) { 
-            let s = anchor.getAttribute('scale'); s.x *= f; s.y *= f; s.z *= f; 
-            anchor.setAttribute('scale', s); recordLog("倍率"); 
-        }
-        function resetAll() { 
-            anchor.setAttribute('position', '0 -1.6 -5'); 
-            anchor.setAttribute('scale', '1 1 1'); 
-            anchor.setAttribute('rotation', '0 0 0');
-            recordLog("リセット実行"); 
-        }
-
+        // モデル読込完了時のイベント
         model.addEventListener('model-loaded', () => {
-            document.getElementById('log-status').innerText = "成功！";
-            recordLog("読込完了");
+            document.getElementById('log-status').innerText = "成功！表示中";
+            document.getElementById('log-status').className = "log-ok";
+            addHistory("3Dデータの展開に成功しました");
         });
 
-        model.addEventListener('model-error', () => {
-            document.getElementById('log-status').innerText = "失敗(404等)";
-            recordLog("エラー発生");
+        // モデル読込失敗時のイベント（ここで404エラーなどをキャッチ）
+        model.addEventListener('model-error', (e) => {
+            document.getElementById('log-status').innerText = "失敗 (404 / 読込不可)";
+            document.getElementById('log-status').className = "log-err";
+            addHistory("ファイルが見つからないか壊れています", true);
         });
 
-        // ログをテキストファイルとしてダウンロード
-        function downloadLog() {
-            const blob = new Blob([logData.join('\n')], {type: 'text/plain'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `AR_LOG_${new Date().getTime()}.txt`;
-            a.click();
+        // 座標情報のリアルタイム更新
+        function updateDisplay() {
+            const pos = anchor.getAttribute('position');
+            const sc = anchor.getAttribute('scale');
+            document.getElementById('val-px').innerText = pos.x.toFixed(1);
+            document.getElementById('val-py').innerText = pos.y.toFixed(1);
+            document.getElementById('val-pz').innerText = pos.z.toFixed(1);
+            document.getElementById('val-sc').innerText = sc.x.toFixed(2);
         }
+
+        function moveModel(axis, val) {
+            let p = anchor.getAttribute('position');
+            p[axis] += val;
+            anchor.setAttribute('position', p);
+            updateDisplay();
+        }
+
+        function rotateModel(deg) {
+            let r = anchor.getAttribute('rotation');
+            r.y += deg;
+            anchor.setAttribute('rotation', r);
+            addHistory(`回転: ${r.y}度`);
+        }
+
+        function scaleModel(f) {
+            let s = anchor.getAttribute('scale');
+            s.x *= f; s.y *= f; s.z *= f;
+            anchor.setAttribute('scale', s);
+            updateDisplay();
+            addHistory(`倍率: x${f}`);
+        }
+
+        function resetPos() {
+            anchor.setAttribute('position', '0 -1.6 -5');
+            anchor.setAttribute('scale', '1 1 1');
+            updateDisplay();
+            addHistory("位置を初期化しました");
+        }
+        
+        updateDisplay();
     </script>
 </body>
 </html>
