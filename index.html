@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR ログ解析版</title>
+    <title>文教の森 ARポータル - 最終調整版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -11,54 +11,53 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
         .menu { position: absolute; display: flex; flex-direction: column; gap: 4px; }
-        button { padding: 10px; border-radius: 8px; border: none; background: white; font-weight: bold; font-size: 12px; }
+        button { padding: 12px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; font-size: 13px; cursor: pointer; }
+        .active-btn { background: #4CAF50 !important; color: white; }
         .top-left { top: 10px; left: 10px; }
         .ctrl-left { top: 35%; left: 10px; }
         .ctrl-right { top: 35%; right: 10px; }
         .bottom-bar { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
         
-        /* ログ解析パネル */
+        /* 解析ログパネル */
         #log-panel { 
-            position: absolute; top: 10px; right: 10px; width: 240px; height: 160px; 
-            background: rgba(0,0,0,0.85); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; 
-            overflow-y: auto; pointer-events: none; border: 1px solid #0f0; line-height: 1.4;
+            position: absolute; top: 10px; right: 10px; width: 220px; height: 140px; 
+            background: rgba(0,0,0,0.8); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; 
+            overflow-y: auto; pointer-events: none; border: 1px solid #0f0;
         }
-        .log-err { color: #ff4b4b; font-weight: bold; }
-        .log-ok { color: #00ff00; }
-        .log-info { color: #ffff00; }
+        .log-val { color: #ff0; }
     </style>
 </head>
 
 <body>
     <div id="ui-layer">
         <div id="log-panel">
-            [FILE] <span id="log-file" class="log-info">---</span><br>
-            [STATUS] <span id="log-status">待機中...</span><br>
-            [POS] X:<span id="val-px">0</span> Y:<span id="val-py">0</span> Z:<span id="val-pz">0</span><br>
-            [SCALE] <span id="val-sc">1.00</span><br>
+            [FILE] <span id="log-file" style="color:cyan">---</span><br>
+            [STATUS] <span id="log-status">待機中</span><br>
+            [POS] X:<span id="val-px" class="log-val">0</span> Y:<span id="val-py" class="log-val">0</span> Z:<span id="val-pz" class="log-val">0</span><br>
+            [SCALE] <span id="val-sc" class="log-val">1.00</span><br>
             --------------------<br>
             <div id="log-history"></div>
         </div>
 
         <div class="menu top-left clickable">
-            <button onclick="switchModel('all')">全体(all.glb)</button>
-            <button onclick="switchModel('kozakura')">小桜館(Gun.glb)</button>
-            <button onclick="switchModel('assembly1')">初代(1st.glb)</button>
-            <button onclick="switchModel('assembly2')">二代目(2nd.glb)</button>
+            <button id="btn-all" onclick="switchModel('all')">全体(all)</button>
+            <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館(Gun)</button>
+            <button id="btn-assembly1" onclick="switchModel('assembly1')">初代(1st)</button>
+            <button id="btn-assembly2" onclick="switchModel('assembly2')">二代目(2nd)</button>
         </div>
 
         <div class="menu ctrl-left clickable">
             <button onclick="moveModel('z', -1)">前へ</button>
             <button onclick="moveModel('z', 1)">後へ</button>
-            <button onclick="moveModel('y', 1)">上へ (+Y)</button>
-            <button onclick="moveModel('y', -1)">下へ (-Y)</button>
+            <button onclick="moveModel('y', 1)">上へ(+Y)</button>
+            <button onclick="moveModel('y', -1)">下へ(-Y)</button>
         </div>
 
         <div class="menu ctrl-right clickable">
             <button onclick="rotateModel(30)">回転</button>
-            <button onclick="scaleModel(2)">拡大(x2)</button>
-            <button onclick="scaleModel(0.5)">縮小(x0.5)</button>
-            <button onclick="resetPos()" style="background:#ff9800; color:white;">リセット</button>
+            <button onclick="scaleModel(1.5)">拡大</button>
+            <button onclick="scaleModel(0.7)">縮小</button>
+            <button onclick="resetCurrentPos()" style="background:#ff9800; color:white;">位置リセット</button>
         </div>
 
         <div class="bottom-bar clickable">
@@ -74,51 +73,52 @@
     </a-scene>
 
     <script>
-        // GitHubの構成に基づいた最新のファイル名設定
+        // GitHubのファイル構成に基づく設定
         const appData = {
-            all: "all.glb",
-            kozakura: "Gun.glb",
-            assembly1: "1st.glb",
-            assembly2: "2nd.glb"
+            all: { file: "all.glb", pos: "0 -5 -15", scale: "0.1 0.1 0.1" },
+            kozakura: { file: "Gun.glb", pos: "0 -1.6 -5", scale: "1 1 1" },
+            assembly1: { file: "1st.glb", pos: "0 -1.6 -8", scale: "1 1 1" },
+            assembly2: { file: "2nd.glb", pos: "0 2 -5", scale: "0.5 0.5 0.5" }
         };
 
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
-        function addHistory(msg, isErr = false) {
+        function addHistory(msg) {
             const hist = document.getElementById('log-history');
-            const colorClass = isErr ? 'log-err' : '';
-            hist.innerHTML = `<span class="${colorClass}">> ${msg}</span><br>` + hist.innerHTML;
+            hist.innerHTML = "> " + msg + "<br>" + hist.innerHTML;
         }
 
         function switchModel(key) {
-            const fileName = appData[key];
-            document.getElementById('log-file').innerText = fileName;
+            const data = appData[key];
+            document.getElementById('log-file').innerText = data.file;
             document.getElementById('log-status').innerText = "読込中...";
-            document.getElementById('log-status').className = "log-info";
             
-            // 重要：一度モデルをクリアしてから再読込（読み込みエラーを防ぐ）
-            model.removeAttribute('gltf-model');
-            model.setAttribute('gltf-model', fileName);
+            // モデルのパス設定
+            model.setAttribute('gltf-model', data.file);
             
-            addHistory(`${key} の読込を開始しました`);
+            // 建物ごとの個別座標・倍率を適用（ここが重要！）
+            anchor.setAttribute('position', data.pos);
+            anchor.setAttribute('scale', data.scale);
+            
+            // UI更新
+            document.querySelectorAll('.top-left button').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('btn-' + key).classList.add('active-btn');
+            
+            updateDisplay();
+            addHistory(key + " を呼び出しました");
         }
 
-        // モデル読込完了時のイベント
         model.addEventListener('model-loaded', () => {
             document.getElementById('log-status').innerText = "成功！表示中";
-            document.getElementById('log-status').className = "log-ok";
-            addHistory("3Dデータの展開に成功しました");
+            addHistory("表示に成功しました");
         });
 
-        // モデル読込失敗時のイベント（ここで404エラーなどをキャッチ）
-        model.addEventListener('model-error', (e) => {
-            document.getElementById('log-status').innerText = "失敗 (404 / 読込不可)";
-            document.getElementById('log-status').className = "log-err";
-            addHistory("ファイルが見つからないか壊れています", true);
+        model.addEventListener('model-error', () => {
+            document.getElementById('log-status').innerText = "失敗(404)";
+            addHistory("ファイルが見つかりません");
         });
 
-        // 座標情報のリアルタイム更新
         function updateDisplay() {
             const pos = anchor.getAttribute('position');
             const sc = anchor.getAttribute('scale');
@@ -139,7 +139,6 @@
             let r = anchor.getAttribute('rotation');
             r.y += deg;
             anchor.setAttribute('rotation', r);
-            addHistory(`回転: ${r.y}度`);
         }
 
         function scaleModel(f) {
@@ -147,17 +146,19 @@
             s.x *= f; s.y *= f; s.z *= f;
             anchor.setAttribute('scale', s);
             updateDisplay();
-            addHistory(`倍率: x${f}`);
         }
 
-        function resetPos() {
-            anchor.setAttribute('position', '0 -1.6 -5');
-            anchor.setAttribute('scale', '1 1 1');
+        function resetCurrentPos() {
+            // 現在選択中の建物の初期値に戻す
+            const currentKey = document.querySelector('.active-btn').id.replace('btn-','');
+            anchor.setAttribute('position', appData[currentKey].pos);
+            anchor.setAttribute('scale', appData[currentKey].scale);
             updateDisplay();
             addHistory("位置を初期化しました");
         }
-        
-        updateDisplay();
+
+        // 初期起動時は「全体」を表示
+        window.onload = () => { switchModel('all'); };
     </script>
 </body>
 </html>
