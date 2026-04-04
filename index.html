@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - ナビゲーション付</title>
+    <title>文教の森 AR - 空間固定ナビ版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -11,25 +11,24 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
 
-        /* ナビゲーション矢印 */
+        /* ナビゲーション */
         #ar-nav {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: #ffeb3b; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); pointer-events: none;
+            display: flex; flex-direction: column; align-items: center; color: #ffeb3b; 
+            text-shadow: 2px 2px 4px #000; pointer-events: none;
         }
-        #nav-arrow { font-size: 50px; transition: transform 0.1s ease-out; }
-        #nav-dist { font-size: 14px; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; }
+        #nav-arrow { font-size: 60px; transition: transform 0.1s; }
+        #nav-dist { font-size: 16px; background: rgba(0,0,0,0.6); padding: 4px 12px; border-radius: 20px; margin-top: 5px; }
 
-        /* UIボタン */
-        .menu { position: absolute; display: flex; flex-direction: column; gap: 8px; }
-        button { padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; cursor: pointer; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        /* UIパネル */
+        .menu { position: absolute; display: flex; flex-direction: column; gap: 10px; }
+        button { padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.95); font-weight: bold; cursor: pointer; font-size: 13px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
         .active-btn { background: #4CAF50 !important; color: white; }
-        .left-menu { top: 70px; left: 10px; }
-        .right-menu { top: 70px; right: 10px; align-items: flex-end; }
-        .top-bar { top: 15px; width: 100%; display: flex; justify-content: center; gap: 8px; }
-        .bottom-bar { bottom: 25px; width: 100%; display: flex; justify-content: center; gap: 20px; }
-        .label { color: white; font-size: 11px; margin-bottom: 2px; text-shadow: 1px 1px 2px black; font-weight: bold; }
-        #log-status { position: absolute; top: 55px; width: 100%; text-align: center; color: #0f0; font-size: 12px; font-weight: bold; }
+        .left-menu { top: 80px; left: 15px; }
+        .right-menu { top: 80px; right: 15px; align-items: flex-end; }
+        .top-bar { top: 15px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        .label { color: white; font-size: 11px; margin-bottom: 2px; text-shadow: 1px 1px 2px #000; }
+        #log-status { position: absolute; top: 55px; width: 100%; text-align: center; color: #0f0; font-size: 13px; font-weight: bold; }
     </style>
 </head>
 
@@ -38,37 +37,36 @@
         <div id="ar-nav">
             <div id="nav-arrow">⬆️</div>
             <div id="nav-dist">距離計算中...</div>
-            <div style="font-size:10px;">建物の方向</div>
         </div>
 
         <div class="top-bar clickable">
-            <button onclick="changeLang('jp')">JP</button>
-            <button onclick="changeLang('en')">EN</button>
+            <button onclick="changeLang('jp')">日本語</button>
+            <button onclick="changeLang('en')">English</button>
         </div>
 
-        <div id="log-status">GPS信号を待っています...</div>
+        <div id="log-status">GPS信号を受信中...</div>
 
         <div class="left-menu menu clickable">
-            <div class="label">建物選択</div>
-            <button id="btn-all" onclick="switchModel('all')">全体像</button>
+            <div class="label">建物切り替え</div>
+            <button id="btn-all" onclick="switchModel('all')">全体像 (50m先)</button>
             <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館</button>
-            <button id="btn-1st" onclick="switchModel('assembly1')">初代</button>
-            <button id="btn-2nd" onclick="switchModel('assembly2')">二代目</button>
+            <button id="btn-1st" onclick="switchModel('assembly1')">初代議事堂</button>
+            <button id="btn-2nd" onclick="switchModel('assembly2')">二代目議事堂</button>
         </div>
 
         <div class="right-menu menu clickable">
             <div class="label">位置固定</div>
             <button id="gps-tas" onclick="setGPS('tas')">タス(現在地)</button>
             <button id="gps-genchi" onclick="setGPS('genchi')">現地(小桜館)</button>
-            <div class="label" style="margin-top:10px;">高さ調整</div>
-            <button onclick="adjust('y', 2)">上げる (+2m)</button>
-            <button onclick="adjust('y', -2)">下げる (-2m)</button>
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
+            <div class="label" style="margin-top:15px;">高さ調整</div>
+            <button onclick="adjust('y', 3)">もっと上げる</button>
+            <button onclick="adjust('y', -3)">もっと下げる</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再読み込み</button>
         </div>
     </div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true; antialias: true;">
-        <a-entity id="ar-anchor" scale="50 50 50">
+        <a-entity id="ar-anchor" position="0 -5 0" scale="50 50 50">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
         <a-camera gps-camera="minDistance: 1; positionMinAccuracy: 50;" rotation-reader></a-camera>
@@ -91,12 +89,13 @@
 
         function setGPS(key) {
             const loc = gpsData[key];
-            targetLoc = { lat: loc.lat + 0.00025, lon: loc.lon }; // 25m先に配置
+            // 緯度を 0.00045（約50m）北にずらして「壁の外」へ
+            targetLoc = { lat: loc.lat + 0.00045, lon: loc.lon };
             anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
             
             document.querySelectorAll('.right-menu button').forEach(b => b.classList.remove('active-btn'));
             document.getElementById('gps-' + key).classList.add('active-btn');
-            document.getElementById('log-status').innerText = "25m先に釘を刺しました。矢印に従ってください。";
+            document.getElementById('log-status').innerText = "約50m先に配置しました。矢印に従ってください。";
         }
 
         function switchModel(key) {
@@ -108,37 +107,26 @@
         }
 
         function adjust(ax, v) {
-            let p = anchor.getAttribute('position') || {x:0, y:0, z:0};
+            let p = anchor.getAttribute('position') || {x:0, y:-5, z:0};
             p[ax] += v;
             anchor.setAttribute('position', p);
         }
 
-        // ナビゲーション更新ロジック
+        // 距離と方向の更新
         window.addEventListener('gps-camera-update-position', (e) => {
-            if (!targetLoc) return;
             const dist = e.detail.distance;
             distLabel.innerText = dist > 1000 ? (dist/1000).toFixed(1) + "km" : Math.round(dist) + "m";
+            
+            // 5m以内に近づいたら矢印を消す（めり込み防止のサイン）
+            arrow.style.display = dist < 8 ? "none" : "block";
         });
 
-        // カメラの向きと建物の位置から矢印の角度を計算
+        // カメラの向きに合わせて矢印を回転（簡易ナビ）
         setInterval(() => {
             const cam = document.querySelector('a-camera');
-            if (!cam || !targetLoc) return;
-            
-            const camRot = cam.getAttribute('rotation').y; // カメラの向き
-            const entity = anchor.components['gps-entity-place'];
-            if (!entity || !entity.lookAtNeighbor) return;
-
-            // AR.jsの内部イベントを利用して、画面上の相対的な方向を計算
-            // 簡易的に：モデルが見えていれば矢印を隠し、見えていなければ方向を示す
-            const distance = parseFloat(distLabel.innerText);
-            if (distance < 5) {
-                arrow.style.display = "none"; // 密着時は隠す
-            } else {
-                arrow.style.display = "block";
-                // 実際にはカメラのrotation.yとentityの座標差分から計算
-                // ここではカメラの回転に合わせて矢印を回す簡易実装
-                arrow.style.transform = `rotate(${-camRot}deg)`;
+            if (cam) {
+                const rot = cam.getAttribute('rotation').y;
+                arrow.style.transform = `rotate(${-rot}deg)`;
             }
         }, 100);
 
