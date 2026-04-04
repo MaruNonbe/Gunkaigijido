@@ -3,27 +3,28 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - 地点切替版</title>
+    <title>文教の森 AR - 最終完全版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { 
             margin: 0; overflow: hidden; font-family: sans-serif; background: #000;
-            touch-action: pan-x pan-y; 
+            touch-action: pan-x pan-y; /* ピンチズーム防止 [cite: 2] */
         }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
         
+        /* ボタン共通：ダブルタップズームと選択を防止 [cite: 2] */
         button { 
             padding: 10px; border-radius: 8px; border: none; background: white; 
             font-weight: bold; font-size: 12px; cursor: pointer; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.4); color: #333;
-            touch-action: manipulation;
-            -webkit-user-select: none; user-select: none;
+            touch-action: manipulation; /* ダブルタップズーム防止 [cite: 2] */
+            -webkit-user-select: none; user-select: none; /* テキスト選択防止 [cite: 2] */
         }
         .active-btn { background: #4CAF50 !important; color: white; }
         .audio-btn { background: #FF9800; color: white; border: 1px solid #fff; width: 35px; }
-        .loc-btn { background: #2196F3; color: white; } /* 地点ボタン用カラー */
+        .loc-btn { background: #2196F3; color: white; }
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
 
         .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
@@ -75,35 +76,28 @@
         <a-entity id="ar-anchor" scale="1 1 1" position="0 0 0">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
-        <a-camera gps-camera="minDistance: 0.1; positionMinAccuracy: 1000;" rotation-reader></a-camera>
+        <a-camera gps-camera="minDistance: 1; positionMinAccuracy: 1000;" rotation-reader look-controls-enabled="false"></a-camera>
     </a-scene>
 
     <script>
         const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
         const audioPath = "audio/"; 
         const audioFiles = { kozakura: "Kozakura_", "1st": "1st_NisiokitamaGunkai_", "2nd": "2nd_NishiokitamaGUnkai_" };
+        const kozakuraLoc = { lat: 38.10134, lon: 140.04299 }; // 小桜館の座標 [cite: 2]
 
-        // 小桜館の正確なGPS座標（適宜修正してください）
-        const kozakuraLoc = { lat: 38.10134, lon: 140.04299 };
-
-        const anchor = document.getElementById('ar-anchor');
-        const model = document.getElementById('main-model');
-        const statusBar = document.getElementById('status-bar');
-        
+        const anchor = document.getElementById('ar-anchor'), model = document.getElementById('main-model'), statusBar = document.getElementById('status-bar');
         let userLoc = null, targetLoc = null, currentLang = 'Japanese', currentAudio = null, currentHeight = 0, currentScale = 1, eventLogs = [];
 
         function setLocation(type) {
             if (type === 'current' && userLoc) {
                 targetLoc = { lat: userLoc.lat + 0.00015, lon: userLoc.lon };
-                statusBar.innerText = "地点切替: 現在地から15m先";
             } else if (type === 'kozakura') {
                 targetLoc = kozakuraLoc;
-                statusBar.innerText = "地点切替: 小桜館(固定)";
             }
             anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
-            
             document.getElementById('loc-current').classList.toggle('active-btn', type === 'current');
             document.getElementById('loc-kozakura').classList.toggle('active-btn', type === 'kozakura');
+            statusBar.innerText = "地点切替完了";
         }
 
         function setLang(lang) {
@@ -125,7 +119,7 @@
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
             document.querySelectorAll('.left-menu button:not(.loc-btn)').forEach(b => b.classList.remove('active-btn'));
-            document.getElementById('m-'+key).classList.add('active-btn');
+            if(document.getElementById('m-'+key)) document.getElementById('m-'+key).classList.add('active-btn');
         }
 
         function adjustScale(f) { currentScale *= f; updateTransform(); }
@@ -145,10 +139,7 @@
 
         navigator.geolocation.watchPosition((pos) => {
             userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-            if (!targetLoc) {
-                setLocation('current');
-                switchModel('all');
-            }
+            if (!targetLoc) { setLocation('current'); switchModel('all'); }
             eventLogs.push(`GPS: ${userLoc.lat},${userLoc.lon}`);
             if (statusBar.innerText.includes("GPSを取得中")) statusBar.innerText = "GPS OK";
         }, null, { enableHighAccuracy: true });
