@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - サイズ調整版</title>
+    <title>文教の森 AR - 音声ガイド付</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -11,32 +11,51 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
         
-        /* メニュー共通スタイル */
         .menu { position: absolute; display: flex; flex-direction: column; gap: 8px; }
         button { padding: 12px; border-radius: 10px; border: none; background: white; font-weight: bold; font-size: 13px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); cursor: pointer; color: #333; }
         .active-btn { background: #4CAF50 !important; color: white; }
+        .audio-btn { background: #FF9800; color: white; border: 2px solid #fff; }
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
 
         .left-menu { top: 20px; left: 15px; }
         .right-menu { top: 20px; right: 15px; align-items: flex-end; }
-        #log-display { position: absolute; bottom: 100px; left: 15px; color: #0f0; font-family: monospace; font-size: 10px; background: rgba(0,0,0,0.5); padding: 5px; pointer-events: none; }
+        .top-center { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
+        #status-bar { position: absolute; bottom: 100px; width: 100%; text-align: center; color: #0f0; font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.4); }
     </style>
 </head>
 
 <body>
     <div id="ui-layer">
+        <div class="top-center clickable">
+            <button id="lang-jp" class="active-btn" onclick="setLang('jp')">日本語</button>
+            <button id="lang-en" onclick="setLang('en')">English</button>
+        </div>
+
         <div class="left-menu menu clickable">
-            <div class="label">モデル選択</div>
-            <button id="m-all" onclick="switchModel('all')">全体(all)</button>
-            <button id="m-gun" onclick="switchModel('kozakura')">小桜館(Gun)</button>
-            <button id="m-1st" onclick="switchModel('1st')">初代(1st)</button>
-            <button id="m-2nd" onclick="switchModel('2nd')">二代目(2nd)</button>
+            <div class="label">建物選択 / 解説</div>
+            <div style="display:flex; gap:5px;">
+                <button id="m-all" onclick="switchModel('all')">全体</button>
+                <button class="audio-btn" onclick="playAudio('all')">🔊</button>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <button id="m-gun" onclick="switchModel('kozakura')">小桜館</button>
+                <button class="audio-btn" onclick="playAudio('kozakura')">🔊</button>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <button id="m-1st" onclick="switchModel('1st')">初代</button>
+                <button class="audio-btn" onclick="playAudio('1st')">🔊</button>
+            </div>
+            <div style="display:flex; gap:5px;">
+                <button id="m-2nd" onclick="switchModel('2nd')">二代目</button>
+                <button class="audio-btn" onclick="playAudio('2nd')">🔊</button>
+            </div>
+            <button id="stop-audio" style="background:#607D8B; color:white; margin-top:5px;" onclick="stopAllAudio()">停止 ⏹</button>
         </div>
 
         <div class="right-menu menu clickable">
-            <div class="label">モデルサイズ</div>
-            <button id="sc-1" onclick="changeScale(1)">等身大 (1倍)</button>
-            <button id="sc-50" onclick="changeScale(50)">実寸大 (50倍)</button>
+            <div class="label">サイズ調整</div>
+            <button onclick="changeScale(1)">等身大 (1倍)</button>
+            <button onclick="changeScale(50)">実寸大 (50倍)</button>
             <div style="display:flex; gap:5px;">
                 <button onclick="adjustScale(1.2)">拡大</button>
                 <button onclick="adjustScale(0.8)">縮小</button>
@@ -51,7 +70,7 @@
             <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
         </div>
 
-        <div id="log-display">GPS待機中...</div>
+        <div id="status-bar">GPS待機中...</div>
     </div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true;">
@@ -63,66 +82,73 @@
 
     <script>
         const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
+        // 【音声ファイル設定】 ここを実際のファイル名に書き換えてください
+        const audioData = {
+            jp: { all: "all_jp.mp3", kozakura: "gun_jp.mp3", "1st": "1st_jp.mp3", "2nd": "2nd_jp.mp3" },
+            en: { all: "all_en.mp3", kozakura: "gun_en.mp3", "1st": "1st_en.mp3", "2nd": "2nd_en.mp3" }
+        };
+
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
-        const logDisp = document.getElementById('log-display');
+        const statusBar = document.getElementById('status-bar');
         
         let targetLoc = null;
         let currentHeight = 0;
         let currentScale = 1;
+        let currentLang = 'jp';
+        let currentAudio = null;
         let eventLogs = [];
 
-        function addLog(msg) {
-            const entry = `[${new Date().toLocaleTimeString()}] ${msg}`;
-            eventLogs.push(entry);
-            logDisp.innerText = msg;
+        function setLang(lang) {
+            currentLang = lang;
+            document.getElementById('lang-jp').classList.toggle('active-btn', lang === 'jp');
+            document.getElementById('lang-en').classList.toggle('active-btn', lang === 'en');
+            // ボタンのテキスト切替（例）
+            document.getElementById('m-all').innerText = (lang === 'jp') ? "全体" : "Overall";
+            document.getElementById('m-gun').innerText = (lang === 'jp') ? "小桜館" : "Kozakura";
+        }
+
+        function playAudio(key) {
+            stopAllAudio();
+            const file = audioData[currentLang][key];
+            currentAudio = new Audio(file);
+            currentAudio.play().catch(e => console.log("Audio play error: ", e));
+            statusBar.innerText = `再生中: ${file}`;
+        }
+
+        function stopAllAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+            }
+            statusBar.innerText = "音声停止中";
         }
 
         navigator.geolocation.watchPosition((pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
-            
             if (!targetLoc) {
-                // 15m先に配置
                 targetLoc = { lat: lat + 0.00014, lon: lon }; 
                 anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
                 switchModel('all');
-                addLog("配置完了: 15m先");
             }
-            eventLogs.push(`GPS: ${lat.toFixed(7)},${lon.toFixed(7)}`);
-        }, (err) => addLog("GPS Error: " + err.message), { enableHighAccuracy: true });
+            statusBar.innerText = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        }, null, { enableHighAccuracy: true });
 
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
             document.querySelectorAll('.left-menu button').forEach(b => b.classList.remove('active-btn'));
             const idMap = { all: 'm-all', kozakura: 'm-gun', '1st': 'm-1st', '2nd': 'm-2nd' };
             document.getElementById(idMap[key]).classList.add('active-btn');
-            addLog(`モデル切替: ${key}`);
         }
 
-        function changeScale(val) {
-            currentScale = val;
-            updateScale();
-            document.getElementById('sc-1').classList.toggle('active-btn', val === 1);
-            document.getElementById('sc-50').classList.toggle('active-btn', val === 50);
-        }
-
-        function adjustScale(factor) {
-            currentScale *= factor;
-            updateScale();
-            addLog(`倍率: ${currentScale.toFixed(2)}倍`);
-        }
-
-        function updateScale() {
+        function changeScale(val) { currentScale = val; updateTransform(); }
+        function adjustScale(f) { currentScale *= f; updateTransform(); }
+        function adjustHeight(v) { currentHeight += v; updateTransform(); }
+        function updateTransform() {
             anchor.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-        }
-
-        function adjustHeight(val) {
-            currentHeight += val;
             anchor.setAttribute('position', `0 ${currentHeight} 0`);
-            addLog(`高度: ${currentHeight}m`);
         }
-
         function downloadLog() {
             const blob = new Blob([eventLogs.join('\n')], {type: 'text/plain'});
             const a = document.createElement('a');
