@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 ARポータル - 統合版</title>
+    <title>文教の森 AR - 地面固定・回り込み対応版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -11,7 +11,6 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
 
-        /* メニュー配置 */
         .menu-group { position: absolute; display: flex; flex-direction: column; gap: 6px; }
         button { padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 12px; }
         
@@ -19,28 +18,32 @@
         .top-right { top: 10px; right: 10px; flex-direction: row; }
         .active-btn { background: #4CAF50 !important; color: white; }
 
-        /* 操作パネル（左右中央） */
         .ctrl-left { top: 30%; left: 10px; }
         .ctrl-right { top: 30%; right: 10px; }
 
-        /* 下部アクション */
         .bottom-bar { position: absolute; bottom: 25px; width: 100%; display: flex; justify-content: center; gap: 12px; }
         .btn-round { width: 50px; height: 50px; border-radius: 50%; font-size: 20px; display: flex; align-items: center; justify-content: center; }
 
-        /* 説明パネル */
-        #desc-panel { position: absolute; bottom: 0; width: 100%; height: 22%; background: rgba(0,0,0,0.85); color: white; border-radius: 15px 15px 0 0; display: none; padding: 15px; box-sizing: border-box; }
+        #desc-panel { position: absolute; bottom: 0; width: 100%; height: 22%; background: rgba(0,0,0,0.9); color: white; border-radius: 15px 15px 0 0; display: none; padding: 15px; box-sizing: border-box; }
+        #log-console { position: absolute; top: 180px; right: 10px; width: 200px; height: 80px; background: rgba(0,0,0,0.7); color: #0f0; font-size: 10px; padding: 5px; border: 1px solid #0f0; overflow: hidden; pointer-events: none; }
     </style>
 </head>
 
 <body>
     <div id="ui-layer">
+        <div id="log-console">
+            [STATUS] <span id="log-status">GPS待機中</span><br>
+            [H-ADJ] <span id="val-py">0</span>m<br>
+            > 歩いて建物の見え方が変わるか確認してください
+        </div>
+
         <div class="menu-group top-left clickable">
             <div style="color:white; font-size:10px; margin-bottom:2px;">▼ 建物選択</div>
-            <button id="btn-all" class="active-btn" onclick="switchModel('all')">全体</button>
+            <button id="btn-all" onclick="switchModel('all')">全体</button>
             <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館</button>
             <button id="btn-1st" onclick="switchModel('assembly1')">初代</button>
             <button id="btn-2nd" onclick="switchModel('assembly2')">二代目</button>
-            <div style="color:white; font-size:10px; margin-top:10px; margin-bottom:2px;">▼ GPS位置</div>
+            <div style="color:white; font-size:10px; margin-top:10px; margin-bottom:2px;">▼ GPS位置(正面5mに固定)</div>
             <button id="gps-tas" onclick="setGPS('tas')">タス(現在地)</button>
             <button id="gps-genchi" onclick="setGPS('genchi')">現地(小桜館)</button>
         </div>
@@ -53,18 +56,17 @@
         </div>
 
         <div class="menu-group ctrl-left clickable">
-            <button onclick="adjust('y', 1)">上へ</button>
-            <button onclick="adjust('y', -1)">下へ</button>
+            <button onclick="adjust('y', 1)">建物を上げる</button>
+            <button onclick="adjust('y', -1)">建物を下げる</button>
         </div>
         <div class="menu-group ctrl-right clickable">
-            <button onclick="rotate(45)">回転</button>
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
+            <button onclick="rotate(45)">45度回転</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再読込</button>
         </div>
 
         <div class="bottom-bar clickable">
-            <button class="btn-round" onclick="takePhoto()">📸</button>
-            <button class="btn-round" onclick="startVideo()">🎥</button>
-            <button class="btn-round" onclick="shareSNS()">🔗</button>
+            <button class="btn-round" onclick="alert('撮影ボタン')">📸</button>
+            <button class="btn-round" onclick="alert('共有ボタン')">🔗</button>
             <button class="btn-round" onclick="toggleInfo()">ℹ️</button>
         </div>
 
@@ -78,7 +80,8 @@
         <a-entity id="ar-anchor" scale="50 50 50">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
-        <a-camera gps-camera rotation-reader near="0.1" far="10000"></a-camera>
+        
+        <a-camera gps-camera="minDistance: 1; positionMinAccuracy: 50;" rotation-reader near="0.1" far="10000"></a-camera>
     </a-scene>
 
     <script>
@@ -96,25 +99,35 @@
 
         let currentMode = "all";
         let currentLang = "jp";
+        let firstSpawn = false;
+
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
-        // GPS地点に正面5mで配置する関数
+        // GPS座標に釘を刺す（位置を完全に固定する）
         function setGPS(key) {
             const loc = gpsData[key];
-            // 指定座標の「5m北(緯度+0.000045)」に配置
+            // 自分の現在位置から北に約5mの地点に「釘」を刺す
             anchor.setAttribute('gps-entity-place', `latitude: ${loc.lat + 0.000045}; longitude: ${loc.lon};`);
             
             document.querySelectorAll('.top-left button[id^="gps-"]').forEach(b => b.classList.remove('active-btn'));
             document.getElementById('gps-' + key).classList.add('active-btn');
-            updateUI();
+            document.getElementById('log-status').innerText = "固定完了！歩いてみて下さい";
         }
 
         function switchModel(key) {
             currentMode = key;
             model.setAttribute('gltf-model', appData[key].file);
+            
+            // 初回起動時のみタスの位置に固定
+            if(!firstSpawn) {
+                setGPS('tas');
+                firstSpawn = true;
+            }
+
             document.querySelectorAll('.top-left button[id^="btn-"]').forEach(b => b.classList.remove('active-btn'));
-            document.getElementById('btn-' + (key === 'assembly1' ? '1st' : key === 'assembly2' ? '2nd' : key)).classList.add('active-btn');
+            const id = (key === 'assembly1' ? 'btn-1st' : key === 'assembly2' ? 'btn-2nd' : 'btn-' + key);
+            document.getElementById(id).classList.add('active-btn');
             updateUI();
         }
 
@@ -127,19 +140,24 @@
         function changeLang(l) { currentLang = l; updateUI(); }
         function toggleInfo() { const p = document.getElementById('desc-panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
         
-        function adjust(ax, v) { let p = anchor.getAttribute('position') || {x:0, y:0, z:0}; p[ax] += v; anchor.setAttribute('position', p); }
-        function rotate(deg) { let r = anchor.getAttribute('rotation') || {x:0, y:0, z:0}; r.y += deg; anchor.setAttribute('rotation', r); }
+        function adjust(ax, v) { 
+            let p = anchor.getAttribute('position') || {x:0, y:0, z:0}; 
+            p[ax] += v; 
+            anchor.setAttribute('position', p); 
+            document.getElementById('val-py').innerText = p.y.toFixed(1);
+        }
+        function rotate(deg) { 
+            let r = anchor.getAttribute('rotation') || {x:0, y:0, z:0}; 
+            r.y += deg; 
+            anchor.setAttribute('rotation', r); 
+        }
 
-        function takePhoto() { alert("スクリーンショットを撮影してください"); }
-        function startVideo() { alert("画面収録を開始してください"); }
-        function shareSNS() { window.open("https://twitter.com/intent/tweet?text=文教の森AR体験中！", "_blank"); }
+        model.addEventListener('model-loaded', () => {
+            document.getElementById('log-status').innerText = "読込成功";
+        });
 
-        // 初期起動（タスを基準に全体を表示）
         window.onload = () => { 
-            setTimeout(() => { 
-                switchModel('all');
-                setGPS('tas');
-            }, 1000); 
+            setTimeout(() => { switchModel('all'); }, 1500); 
         };
     </script>
 </body>
