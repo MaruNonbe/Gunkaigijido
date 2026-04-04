@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - 最終デバッグ版</title>
+    <title>文教の森 AR - 実寸大ウォークスルー</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -11,57 +11,47 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
         
-        /* ログパネル */
-        #debug-panel { 
-            position: absolute; top: 10px; left: 10px; width: 280px; 
-            background: rgba(0,0,0,0.8); color: #0f0; padding: 10px; font-size: 10px; border-radius: 8px; border: 1px solid #0f0;
+        /* 距離表示パネル */
+        #dist-panel { 
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.85); color: #ffeb3b; padding: 12px 25px; border-radius: 30px;
+            font-size: 24px; font-weight: bold; border: 2px solid #ffeb3b; text-align: center;
         }
-        .val { color: #ffeb3b; }
 
-        /* ボタン配置 */
+        /* サイドメニュー */
         .menu { position: absolute; display: flex; flex-direction: column; gap: 8px; }
-        button { padding: 10px; border-radius: 8px; border: none; background: white; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        button { padding: 12px; border-radius: 10px; border: none; background: white; font-weight: bold; font-size: 13px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .active-btn { background: #4CAF50 !important; color: white; }
-        .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        .label { color: white; font-size: 11px; margin-bottom: 2px; text-shadow: 1px 1px 2px #000; font-weight: bold; }
 
-        .left-menu { top: 160px; left: 10px; }
-        .right-menu { top: 10px; right: 10px; align-items: flex-end; }
-        .bottom-menu { bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+        .left-menu { top: 120px; left: 15px; }
+        .right-menu { top: 120px; right: 15px; align-items: flex-end; }
+        .bottom-bar { bottom: 25px; width: 100%; display: flex; justify-content: center; gap: 15px; }
     </style>
 </head>
 
 <body>
     <div id="ui-layer">
-        <div id="debug-panel">
-            【GPSログ】<br>
-            Device: <span id="log-raw" class="val">取得中...</span><br>
-            Target: <span id="log-target" class="val">未配置</span><br>
-            Distance: <span id="log-dist" class="val">---</span> m<br>
-            Accuracy: ±<span id="log-acc" class="val">--</span>m<br>
-            <br>
-            【処理ログ】<br>
-            <div id="process-log" style="height: 40px; overflow-y: auto; color: cyan;">アプリを起動しました</div>
-        </div>
-
-        <div class="right-menu menu clickable">
-            <button onclick="downloadLog()" style="background:#2196F3; color:white;">📊 ログ保存</button>
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
-            
-            <div class="label" style="margin-top:10px;">高度調整</div>
-            <button onclick="adjustHeight(1)">上げる (+1)</button>
-            <button onclick="adjustHeight(-1)">下げる (-1)</button>
-            
-            <div class="label" style="margin-top:10px;">スケール</div>
-            <button id="sc1" onclick="changeScale(1)" class="active-btn">等身大</button>
-            <button id="sc50" onclick="changeScale(50)">50倍</button>
+        <div id="dist-panel">
+            <span id="dist-val">---</span> m<br>
+            <span style="font-size:10px; color:white;">建物までの実距離</span>
         </div>
 
         <div class="left-menu menu clickable">
-            <div class="label">モデル</div>
-            <button id="m-all" onclick="switchModel('all')" class="active-btn">全体</button>
-            <button id="m-gun" onclick="switchModel('kozakura')">小桜館</button>
-            <button id="m-1st" onclick="switchModel('1st')">初代</button>
-            <button id="m-2nd" onclick="switchModel('2nd')">二代目</button>
+            <div class="label">モデル選択</div>
+            <button id="m-all" onclick="switchModel('all')" class="active-btn">全体(all)</button>
+            <button id="m-gun" onclick="switchModel('kozakura')">小桜館(Gun)</button>
+            <button id="m-1st" onclick="switchModel('1st')">初代(1st)</button>
+            <button id="m-2nd" onclick="switchModel('2nd')">二代目(2nd)</button>
+        </div>
+
+        <div class="right-menu menu clickable">
+            <div class="label">高度微調整</div>
+            <button onclick="adjustHeight(0.5)">上げる(+0.5m)</button>
+            <button onclick="adjustHeight(-0.5)">下げる(-0.5m)</button>
+            <div class="label" style="margin-top:15px;">システム</div>
+            <button onclick="downloadLog()" style="background:#2196F3; color:white;">ログ保存</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
         </div>
     </div>
 
@@ -70,70 +60,46 @@
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
         
-        <a-camera gps-camera="minDistance: 0.1; positionMinAccuracy: 1000;" rotation-reader></a-camera>
+        <a-camera gps-camera="minDistance: 0.2; positionMinAccuracy: 1000;" far="10000" rotation-reader></a-camera>
     </a-scene>
 
     <script>
         const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
-        const processLog = document.getElementById('process-log');
-        
         let targetLoc = null;
         let eventLogs = [];
         let currentHeight = 0;
 
-        function addLog(msg) {
-            const time = new Date().toLocaleTimeString();
-            const entry = `[${time}] ${msg}`;
-            processLog.innerHTML = entry + "<br>" + processLog.innerHTML;
-            eventLogs.push(entry);
-        }
-
+        // GPS監視
         navigator.geolocation.watchPosition((pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             const acc = pos.coords.accuracy;
 
-            document.getElementById('log-raw').innerText = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-            document.getElementById('log-acc').innerText = Math.round(acc);
-
+            // 初回配置：30m先に設置 (緯度+0.00027)
             if (!targetLoc) {
-                targetLoc = { lat: lat + 0.00010, lon: lon }; 
+                targetLoc = { lat: lat + 0.00027, lon: lon }; 
                 anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
-                document.getElementById('log-target').innerText = `${targetLoc.lat.toFixed(6)}, ${targetLoc.lon.toFixed(6)}`;
                 switchModel('all');
-                addLog("初配置: 10m先に建物を設置");
             }
 
             const d = calculateDistance(lat, lon, targetLoc.lat, targetLoc.lon);
-            document.getElementById('log-dist').innerText = d.toFixed(1);
+            document.getElementById('dist-val').innerText = d.toFixed(1);
             
-            // ログデータに追加（保存用）
-            eventLogs.push(`GPS_UPDATE: Lat:${lat}, Lon:${lon}, Acc:${acc}, Dist:${d.toFixed(1)}`);
-        }, (err) => addLog("GPSエラー: " + err.message), { enableHighAccuracy: true });
-
-        function adjustHeight(val) {
-            currentHeight += val;
-            let p = anchor.getAttribute('position');
-            p.y = currentHeight;
-            anchor.setAttribute('position', p);
-            addLog(`高度変更: ${currentHeight}m`);
-        }
-
-        function changeScale(val) {
-            anchor.setAttribute('scale', `${val} ${val} ${val}`);
-            document.getElementById('sc1').classList.toggle('active-btn', val === 1);
-            document.getElementById('sc50').classList.toggle('active-btn', val === 50);
-            addLog(`スケール変更: ${val}倍`);
-        }
+            eventLogs.push(`${new Date().toLocaleTimeString()}, Lat:${lat}, Lon:${lon}, Acc:${acc}, Dist:${d.toFixed(1)}`);
+        }, null, { enableHighAccuracy: true });
 
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
             document.querySelectorAll('.left-menu button').forEach(b => b.classList.remove('active-btn'));
-            const btnMap = { all: 'm-all', kozakura: 'm-gun', '1st': 'm-1st', '2nd': 'm-2nd' };
-            document.getElementById(btnMap[key]).classList.add('active-btn');
-            addLog(`モデル切替: ${key}`);
+            const btnId = key === 'kozakura' ? 'm-gun' : 'm-' + key;
+            document.getElementById(btnId).classList.add('active-btn');
+        }
+
+        function adjustHeight(val) {
+            currentHeight += val;
+            anchor.setAttribute('position', `0 ${currentHeight} 0`);
         }
 
         function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -148,9 +114,8 @@
             const blob = new Blob([eventLogs.join('\n')], {type: 'text/plain'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `AR_GPS_ProcessLog_${new Date().getTime()}.txt`;
+            a.download = `AR_RealScale_Log_${new Date().getTime()}.txt`;
             a.click();
-            addLog("ログファイルを保存しました");
         }
     </script>
 </body>
