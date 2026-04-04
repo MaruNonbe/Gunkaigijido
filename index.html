@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - UI整理版</title>
+    <title>文教の森 AR - 外観パース調整版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -11,26 +11,17 @@
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
 
-        /* 共通ボタンスタイル */
         button { padding: 12px; border-radius: 10px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.3); font-size: 13px; }
         .active-btn { background: #4CAF50 !important; color: white; }
-        .label { color: white; font-size: 10px; margin-bottom: 4px; text-shadow: 1px 1px 2px black; font-weight: bold; }
+        .label { color: white; font-size: 11px; margin-bottom: 4px; text-shadow: 1px 1px 2px black; font-weight: bold; }
 
-        /* 左側：建物選択 */
         .left-menu { position: absolute; top: 80px; left: 10px; display: flex; flex-direction: column; gap: 10px; }
-
-        /* 右側：GPSと調整 */
         .right-menu { position: absolute; top: 80px; right: 10px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
-
-        /* 上部：言語 */
         .top-center { position: absolute; top: 15px; width: 100%; display: flex; justify-content: center; gap: 8px; }
-
-        /* 下部：アクション */
         .bottom-bar { position: absolute; bottom: 25px; width: 100%; display: flex; justify-content: center; gap: 20px; }
         .btn-round { width: 55px; height: 55px; border-radius: 50%; font-size: 24px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.95); }
 
-        /* 情報パネル */
-        #desc-panel { position: absolute; bottom: 0; width: 100%; height: 20%; background: rgba(0,0,0,0.85); color: white; border-radius: 20px 20px 0 0; display: none; padding: 20px; box-sizing: border-box; border-top: 2px solid #4CAF50; }
+        #desc-panel { position: absolute; bottom: 0; width: 100%; height: 20%; background: rgba(0,0,0,0.9); color: white; border-radius: 20px 20px 0 0; display: none; padding: 20px; box-sizing: border-box; border-top: 2px solid #4CAF50; }
         #log-status { position: absolute; top: 60px; width: 100%; text-align: center; color: #0f0; font-size: 12px; font-weight: bold; text-shadow: 1px 1px 2px black; }
     </style>
 </head>
@@ -44,30 +35,30 @@
             <button onclick="changeLang('en')">EN</button>
         </div>
 
-        <div id="log-status">GPS取得中...</div>
+        <div id="log-status">GPS信号待機中...</div>
 
         <div class="left-menu clickable">
-            <div class="label">建物を切り替える</div>
-            <button id="btn-all" onclick="switchModel('all')">全体像を表示</button>
-            <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館を表示</button>
+            <div class="label">建物を表示</div>
+            <button id="btn-all" onclick="switchModel('all')">全体像 (20m先)</button>
+            <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館</button>
             <button id="btn-1st" onclick="switchModel('assembly1')">初代議事堂</button>
             <button id="btn-2nd" onclick="switchModel('assembly2')">二代目議事堂</button>
         </div>
 
         <div class="right-menu clickable">
-            <div class="label">GPS位置（正面5m）</div>
+            <div class="label">配置場所を固定</div>
             <button id="gps-tas" onclick="setGPS('tas')">タス(現在地)</button>
             <button id="gps-genchi" onclick="setGPS('genchi')">現地(小桜館)</button>
             
-            <div class="label" style="margin-top:15px;">微調整</div>
-            <button onclick="adjust('y', 1.5)">建物を上げる</button>
-            <button onclick="adjust('y', -1.5)">建物を下げる</button>
-            <button onclick="rotate(45)">45度回転</button>
-            <button onclick="location.reload()" style="background:#f44336; color:white;">アプリ再起動</button>
+            <div class="label" style="margin-top:15px;">高さ・回転</div>
+            <button onclick="adjust('y', 2)">上げる (+2m)</button>
+            <button onclick="adjust('y', -2)">下げる (-2m)</button>
+            <button onclick="rotate(30)">30度回転</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">リセット</button>
         </div>
 
         <div class="bottom-bar clickable">
-            <button class="btn-round" onclick="alert('スクリーンショットを撮ってください')">📸</button>
+            <button class="btn-round" onclick="alert('カメラでスクリーンショットを撮ってください')">📸</button>
             <button class="btn-round" onclick="shareSNS()">🔗</button>
             <button class="btn-round" onclick="toggleInfo()">ℹ️</button>
         </div>
@@ -79,7 +70,7 @@
     </div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true;">
-        <a-entity id="ar-anchor" scale="50 50 50">
+        <a-entity id="ar-anchor" position="0 -2 0" scale="50 50 50">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
         
@@ -88,10 +79,10 @@
 
     <script>
         const appData = {
-            all: { file: "all.glb", jp: { title: "文教の森 全体像", text: "明治時代の郡役所と議事堂の配置です。50倍の巨大スケールで再現しています。" }, en: { title: "Full View", text: "Meiji-era layout recreated in 50x scale." }, zh: { title: "全景", text: "明治时代的布局。 以50倍比例再现。" }, ko: { title: "전체 모습", text: "메이지 시대의 배치입니다. 50배 크기로 재현했습니다." } },
-            kozakura: { file: "Gun.glb", jp: { title: "旧西置賜郡役所 (小桜館)", text: "1878年築。山形県内に現存する最古の郡役所建築です。" }, en: { title: "Former District Office", text: "Built in 1878, the oldest in Yamagata." }, zh: { title: "旧郡公署", text: "建于1878年。 山形县现存最古老的郡役所建筑。" }, ko: { title: "구 군청", text: "1878년 완공. 야마가타현 내 최고령 군청 건물입니다." } },
-            assembly1: { file: "1st.glb", jp: { title: "初代郡会議事堂", text: "明治20年築。当時の洋風木造建築の粋を集めた建物です。" }, en: { title: "1st Assembly Hall", text: "Built in 1887. Western-style wooden architecture." }, zh: { title: "第一代议事堂", text: "建于1887年。 汇集了当时西洋风格木结构建筑的精华。" }, ko: { title: "초대 의사당", text: "1887년 완공. 당시 서양식 목조 건축의 정수입니다." } },
-            assembly2: { file: "2nd.glb", jp: { title: "二代目郡会議事堂", text: "明治44年築。より近代的な意匠が施された二代目の議事堂です。" }, en: { title: "2nd Assembly Hall", text: "Built in 1911. Modernized design." }, zh: { title: "第二代议事堂", text: "建于1911年。 采用了更加现代化的设计。" }, ko: { title: "2대 의사당", text: "1911년 완공. 보다 근대적인 디자인이 적용되었습니다." } }
+            all: { file: "all.glb", jp: { title: "文教の森 全体像", text: "20m前方に配置しました。巨大なため、離れてご覧ください。" }, en: { title: "Full View", text: "Placed 20m ahead. Please watch from a distance." }, zh: { title: "全景", text: "放置在前方20米处。由于很大，请在远处观看。" }, ko: { title: "전체 모습", text: "20m 전방에 배치했습니다. 매우 크기 때문에 거리를 두고 봐 주세요." } },
+            kozakura: { file: "Gun.glb", jp: { title: "旧西置賜郡役所 (小桜館)", text: "1878年築。最古の郡役所建築です。" }, en: { title: "Former District Office", text: "Built in 1878." }, zh: { title: "旧郡公署", text: "建于1878年。" }, ko: { title: "구 군청", text: "1878년 완공." } },
+            assembly1: { file: "1st.glb", jp: { title: "初代郡会議事堂", text: "明治20年築の洋風木造建築。" }, en: { title: "1st Assembly Hall", text: "Built in 1887." }, zh: { title: "第一代议事堂", text: "建于1887年。" }, ko: { title: "초대 의사당", text: "1887년 완공." } },
+            assembly2: { file: "2nd.glb", jp: { title: "二代目郡会議事堂", text: "明治44年に新築された二代目の議事堂。" }, en: { title: "2nd Assembly Hall", text: "Built in 1911." }, zh: { title: "第二代议事堂", text: "建于1911年。" }, ko: { title: "2대 의사당", text: "1911년 완공." } }
         };
 
         const gpsData = {
@@ -106,15 +97,14 @@
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
-        // GPS地点に釘を刺す（正面5mに固定）
         function setGPS(key) {
             const loc = gpsData[key];
-            // 北に5m(緯度+0.000045)の地点に固定
-            anchor.setAttribute('gps-entity-place', `latitude: ${loc.lat + 0.000045}; longitude: ${loc.lon};`);
+            // 緯度を 0.00018（約20m）プラスして北側に遠ざける
+            anchor.setAttribute('gps-entity-place', `latitude: ${loc.lat + 0.00018}; longitude: ${loc.lon};`);
             
             document.querySelectorAll('.right-menu button[id^="gps-"]').forEach(b => b.classList.remove('active-btn'));
             document.getElementById('gps-' + key).classList.add('active-btn');
-            document.getElementById('log-status').innerText = "建物位置を固定しました。歩いて近づけます。";
+            document.getElementById('log-status').innerText = "20m先に配置。歩いて近づけます。";
         }
 
         function switchModel(key) {
@@ -122,7 +112,7 @@
             model.setAttribute('gltf-model', appData[key].file);
             
             if(!isFixed) {
-                setGPS('tas'); // 初回のみ自動でタスに固定
+                setGPS('tas'); 
                 isFixed = true;
             }
 
@@ -142,7 +132,7 @@
         function toggleInfo() { const p = document.getElementById('desc-panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
         
         function adjust(ax, v) { 
-            let p = anchor.getAttribute('position') || {x:0, y:0, z:0}; 
+            let p = anchor.getAttribute('position') || {x:0, y:-2, z:0}; 
             p[ax] += v; 
             anchor.setAttribute('position', p); 
         }
@@ -153,9 +143,8 @@
         }
 
         function shareSNS() {
-            const url = encodeURIComponent(window.location.href);
-            const text = encodeURIComponent("文教の森ARポータルで歴史を体験中！ #長井市 #AR");
-            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, "_blank");
+            const text = encodeURIComponent("文教の森ARで巨大な郡役所を体験中！ #長井市 #AR");
+            window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
         }
 
         window.onload = () => { 
