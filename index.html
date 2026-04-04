@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 ARポータル - 最終調整版</title>
+    <title>文教の森 AR - 50倍拡大・位置統一版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -14,11 +14,10 @@
         button { padding: 12px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; font-size: 13px; cursor: pointer; }
         .active-btn { background: #4CAF50 !important; color: white; }
         .top-left { top: 10px; left: 10px; }
-        .ctrl-left { top: 35%; left: 10px; }
-        .ctrl-right { top: 35%; right: 10px; }
+        .ctrl-left { top: 30%; left: 10px; }
+        .ctrl-right { top: 30%; right: 10px; }
         .bottom-bar { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
         
-        /* 解析ログパネル */
         #log-panel { 
             position: absolute; top: 10px; right: 10px; width: 220px; height: 140px; 
             background: rgba(0,0,0,0.8); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; 
@@ -34,7 +33,7 @@
             [FILE] <span id="log-file" style="color:cyan">---</span><br>
             [STATUS] <span id="log-status">待機中</span><br>
             [POS] X:<span id="val-px" class="log-val">0</span> Y:<span id="val-py" class="log-val">0</span> Z:<span id="val-pz" class="log-val">0</span><br>
-            [SCALE] <span id="val-sc" class="log-val">1.00</span><br>
+            [SCALE] <span id="val-sc" class="log-val">50.0</span><br>
             --------------------<br>
             <div id="log-history"></div>
         </div>
@@ -47,38 +46,39 @@
         </div>
 
         <div class="menu ctrl-left clickable">
-            <button onclick="moveModel('z', -1)">前へ</button>
-            <button onclick="moveModel('z', 1)">後へ</button>
-            <button onclick="moveModel('y', 1)">上へ(+Y)</button>
-            <button onclick="moveModel('y', -1)">下へ(-Y)</button>
+            <button onclick="moveModel('z', -5)">もっと前へ</button>
+            <button onclick="moveModel('z', 5)">もっと後へ</button>
+            <button onclick="moveModel('y', 5)">もっと上へ(+5)</button>
+            <button onclick="moveModel('y', -5)">もっと下へ(-5)</button>
         </div>
 
         <div class="menu ctrl-right clickable">
-            <button onclick="rotateModel(30)">回転</button>
-            <button onclick="scaleModel(1.5)">拡大</button>
-            <button onclick="scaleModel(0.7)">縮小</button>
-            <button onclick="resetCurrentPos()" style="background:#ff9800; color:white;">位置リセット</button>
+            <button onclick="rotateModel(45)">45度回転</button>
+            <button onclick="scaleModel(1.2)">さらに拡大</button>
+            <button onclick="scaleModel(0.8)">縮小</button>
+            <button onclick="resetCurrentPos()" style="background:#ff9800; color:white;">初期位置に戻す</button>
         </div>
 
         <div class="bottom-bar clickable">
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再読込</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">アプリ再起動</button>
         </div>
     </div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
-        <a-entity id="ar-anchor" position="0 -1.6 -5" scale="1 1 1">
+        <a-entity id="ar-anchor" position="0 0 -20" scale="50 50 50">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
         <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
 
     <script>
-        // GitHubのファイル構成に基づく設定
         const appData = {
-            all: { file: "all.glb", pos: "0 -5 -15", scale: "0.1 0.1 0.1" },
-            kozakura: { file: "Gun.glb", pos: "0 -1.6 -5", scale: "1 1 1" },
-            assembly1: { file: "1st.glb", pos: "0 -1.6 -8", scale: "1 1 1" },
-            assembly2: { file: "2nd.glb", pos: "0 2 -5", scale: "0.5 0.5 0.5" }
+            // 全モデル共通で奥行き Z:-20、サイズ Scale:50 に設定
+            all: { file: "all.glb", pos: "0 0 -20" },
+            kozakura: { file: "Gun.glb", pos: "0 0 -20" },
+            assembly1: { file: "1st.glb", pos: "0 0 -20" },
+            // 2代目は埋まりやすいため、初期位置を地上10m(Y:10)に設定
+            assembly2: { file: "2nd.glb", pos: "0 10 -20" }
         };
 
         const anchor = document.getElementById('ar-anchor');
@@ -94,29 +94,25 @@
             document.getElementById('log-file').innerText = data.file;
             document.getElementById('log-status').innerText = "読込中...";
             
-            // モデルのパス設定
             model.setAttribute('gltf-model', data.file);
             
-            // 建物ごとの個別座標・倍率を適用（ここが重要！）
+            // 位置の統一設定
             anchor.setAttribute('position', data.pos);
-            anchor.setAttribute('scale', data.scale);
+            anchor.setAttribute('scale', "50 50 50"); // 50倍に固定
             
-            // UI更新
             document.querySelectorAll('.top-left button').forEach(b => b.classList.remove('active-btn'));
             document.getElementById('btn-' + key).classList.add('active-btn');
             
             updateDisplay();
-            addHistory(key + " を呼び出しました");
+            addHistory(key + " を表示サイズ50倍で呼出");
         }
 
         model.addEventListener('model-loaded', () => {
             document.getElementById('log-status').innerText = "成功！表示中";
-            addHistory("表示に成功しました");
         });
 
         model.addEventListener('model-error', () => {
             document.getElementById('log-status').innerText = "失敗(404)";
-            addHistory("ファイルが見つかりません");
         });
 
         function updateDisplay() {
@@ -125,7 +121,7 @@
             document.getElementById('val-px').innerText = pos.x.toFixed(1);
             document.getElementById('val-py').innerText = pos.y.toFixed(1);
             document.getElementById('val-pz').innerText = pos.z.toFixed(1);
-            document.getElementById('val-sc').innerText = sc.x.toFixed(2);
+            document.getElementById('val-sc').innerText = sc.x.toFixed(1);
         }
 
         function moveModel(axis, val) {
@@ -149,15 +145,12 @@
         }
 
         function resetCurrentPos() {
-            // 現在選択中の建物の初期値に戻す
             const currentKey = document.querySelector('.active-btn').id.replace('btn-','');
             anchor.setAttribute('position', appData[currentKey].pos);
-            anchor.setAttribute('scale', appData[currentKey].scale);
+            anchor.setAttribute('scale', "50 50 50");
             updateDisplay();
-            addHistory("位置を初期化しました");
         }
 
-        // 初期起動時は「全体」を表示
         window.onload = () => { switchModel('all'); };
     </script>
 </body>
