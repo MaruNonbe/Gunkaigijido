@@ -3,23 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - 復旧版</title>
+    <title>文教の森 AR - 最終完全版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; touch-action: none; }
+        body { 
+            margin: 0; overflow: hidden; font-family: sans-serif; background: #000;
+            touch-action: none; 
+        }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
+        
         button { 
             padding: 10px; border-radius: 8px; border: none; background: white; 
             font-weight: bold; font-size: 12px; cursor: pointer; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.4); color: #333;
-            touch-action: manipulation; -webkit-user-select: none; user-select: none;
+            touch-action: manipulation;
+            -webkit-user-select: none; user-select: none;
         }
         .active-btn { background: #4CAF50 !important; color: white; }
         .audio-btn { background: #FF9800; color: white; border: 1px solid #fff; width: 35px; }
         .loc-btn { background: #2196F3; color: white; }
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
+
         .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
         .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 95%; justify-content: center; flex-wrap: wrap; }
         .left-menu { top: 60px; left: 10px; }
@@ -43,6 +49,7 @@
                 <button id="loc-current" class="loc-btn active-btn" onclick="setLocation('current')">現在地(15m先)</button>
                 <button id="loc-kozakura" class="loc-btn" onclick="setLocation('kozakura')">小桜館(固定)</button>
             </div>
+
             <div class="label" style="margin-top:10px;">表示モデル / 音声解説</div>
             <div style="display:flex; gap:4px;"><button id="m-all" onclick="switchModel('all')">全体(all)</button></div>
             <div style="display:flex; gap:4px;"><button id="m-gun" onclick="switchModel('kozakura')">小桜館</button><button class="audio-btn" onclick="playAudio('kozakura')">🔊</button></div>
@@ -68,7 +75,7 @@
         <a-entity id="ar-anchor" scale="1 1 1" position="0 0 0">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
-        <a-camera gps-camera="minDistance: 5; positionMinAccuracy: 1000;" rotation-reader look-controls-enabled="false"></a-camera>
+        <a-camera gps-camera="minDistance: 1; positionMinAccuracy: 1000;" rotation-reader look-controls-enabled="false"></a-camera>
     </a-scene>
 
     <script>
@@ -90,14 +97,15 @@
         function setLocation(type) {
             if (type === 'current' && userLoc) {
                 targetLoc = { lat: userLoc.lat + 0.00015, lon: userLoc.lon };
+                statusBar.innerText = "地点: 現在地(15m先)";
             } else if (type === 'kozakura') {
                 targetLoc = kozakuraLoc;
+                statusBar.innerText = "地点: 小桜館(固定位置)";
             }
             if (targetLoc) {
                 anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
                 document.getElementById('loc-current').classList.toggle('active-btn', type === 'current');
                 document.getElementById('loc-kozakura').classList.toggle('active-btn', type === 'kozakura');
-                statusBar.innerText = "地点設定完了";
             }
         }
 
@@ -105,6 +113,7 @@
             currentLang = lang;
             document.querySelectorAll('.top-center button').forEach(b => b.classList.remove('active-btn'));
             document.getElementById('lang-' + lang).classList.add('active-btn');
+            statusBar.innerText = "言語: " + lang;
         }
 
         function playAudio(key) {
