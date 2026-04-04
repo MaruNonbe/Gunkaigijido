@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<<<<<<< HEAD
     <title>文教の森 AR - 非表示対策 最終版</title>
+=======
+    <title>文教の森 AR - 回転・非表示対策版</title>
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -14,11 +18,19 @@
             padding: 10px; border-radius: 8px; border: none; background: white; 
             font-weight: bold; font-size: 11px; cursor: pointer; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.4); color: #333;
+<<<<<<< HEAD
             touch-action: manipulation; -webkit-user-select: none; user-select: none;
         }
         .active-btn { background: #4CAF50 !important; color: white; }
         .loc-btn { background: #2196F3; color: white; width: 100%; }
         .rotate-btn { background: #9C27B0 !important; color: white; flex: 1; }
+=======
+            touch-action: manipulation;
+        }
+        .active-btn { background: #4CAF50 !important; color: white; }
+        .loc-btn { background: #2196F3; color: white; }
+        .rotate-btn { background: #9C27B0 !important; color: white; width: 45px; }
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
         .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
         .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 95%; justify-content: center; flex-wrap: wrap; }
@@ -36,6 +48,7 @@
         </div>
 
         <div class="left-menu menu clickable">
+<<<<<<< HEAD
             <div class="label">建物の固定場所</div>
             <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">現在地(15m先)</button>
             <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">タスホテル</button>
@@ -61,24 +74,64 @@
                 <button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
             </div>
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
+=======
+            <div class="label">建物を固定する場所</div>
+            <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">現在地(15m先)</button>
+            <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">タスパークホテル</button>
+            <button id="btn-kozakura" class="loc-btn" onclick="setAnchorLocation('kozakura')">小桜館</button>
+            
+            <div class="label" style="margin-top:10px;">モデル選択</div>
+            <div style="display:flex; gap:4px;"><button id="m-all" onclick="switchModel('all')">全体</button></div>
+            <div style="display:flex; gap:4px;"><button id="m-gun" onclick="switchModel('kozakura')">小桜館</button></div>
+            <div style="display:flex; gap:4px;"><button id="m-1st" onclick="switchModel('1st')">初代</button></div>
+            <div style="display:flex; gap:4px;"><button id="m-2nd" onclick="switchModel('2nd')">二代目</button></div>
         </div>
-        <div id="status-bar">GPSを取得中...</div>
+
+        <div class="right-menu menu clickable">
+            <div class="label">建物を回転</div>
+            <div style="display:flex; gap:4px;">
+                <button class="rotate-btn" onclick="adjustRotation(-30)">左回</button>
+                <button class="rotate-btn" onclick="adjustRotation(30)">右回</button>
+            </div>
+            <div class="label" style="margin-top:10px;">サイズ / 高度</div>
+            <div style="display:flex; gap:4px;"><button onclick="adjustScale(1.2)">拡大</button><button onclick="adjustScale(0.8)">縮小</button></div>
+            <div style="display:flex; gap:4px;"><button onclick="adjustHeight(0.5)">上昇</button><button onclick="adjustHeight(-0.5)">下降</button></div>
+            <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px;">再起動</button>
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
+        </div>
+        <div id="status-bar">GPS準備中...</div>
     </div>
 
+<<<<<<< HEAD
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true; precision: high;">
         <a-entity id="ar-anchor">
             <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
         </a-entity>
         <a-camera id="camera" gps-camera="minDistance: 10; positionMinAccuracy: 1000;" rotation-reader camera="far: 100000; near: 0.1;"></a-camera>
+=======
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true; precision: medium;">
+        <a-entity id="ar-anchor" rotation="0 0 0">
+            <a-entity id="main-model" gltf-model="" rotation="0 0 0"></a-entity>
+        </a-entity>
+        <a-camera id="camera" gps-camera="minDistance: 10000; positionMinAccuracy: 1000;" rotation-reader camera="far: 10000;"></a-camera>
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
     </a-scene>
 
     <script>
         const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
         const locations = { tas: { lat: 38.1068, lon: 140.0400 }, kozakura: { lat: 38.10134, lon: 140.04299 } };
+<<<<<<< HEAD
         const anchor = document.getElementById('ar-anchor'), model = document.getElementById('main-model'), statusBar = document.getElementById('status-bar');
         let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5;
 
         // センサー許可（iOS対策）
+=======
+
+        const anchor = document.getElementById('ar-anchor'), model = document.getElementById('main-model'), statusBar = document.getElementById('status-bar');
+        let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5;
+
+        // センサー許可
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
         window.addEventListener('click', () => {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission().catch(console.error);
@@ -88,30 +141,50 @@
         function setAnchorLocation(type) {
             let target = null;
             if (type === 'current' && userLoc) {
+<<<<<<< HEAD
                 // 現在地から北に約15m（緯度を少し足す）
+=======
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
                 target = { lat: userLoc.lat + 0.00015, lon: userLoc.lon };
             } else if (locations[type]) {
                 target = locations[type];
             }
             if (target) {
                 anchor.setAttribute('gps-entity-place', `latitude: ${target.lat}; longitude: ${target.lon};`);
+<<<<<<< HEAD
                 statusBar.innerText = "固定完了。歩いて近づけます。";
+=======
+                statusBar.innerText = "アンカー固定完了。";
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
                 document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('active-btn'));
                 document.getElementById('btn-' + type).classList.add('active-btn');
                 if (!model.getAttribute('gltf-model')) switchModel('all');
             }
         }
 
+<<<<<<< HEAD
         function adjustRotation(deg) {
             currentRotation += deg;
             model.setAttribute('rotation', `0 ${currentRotation} 0`);
+=======
+        // 回転機能の追加
+        function adjustRotation(deg) {
+            currentRotation += deg;
+            // モデル本体ではなくアンカーを回転させることで、中心を軸に回るようにする
+            model.setAttribute('rotation', `0 ${currentRotation} 0`);
+            statusBar.innerText = `回転: ${currentRotation}度`;
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
         }
 
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
             document.querySelectorAll('.left-menu button:not(.loc-btn)').forEach(b => b.classList.remove('active-btn'));
+<<<<<<< HEAD
             const btn = document.getElementById('m-'+key);
             if(btn) btn.classList.add('active-btn');
+=======
+            if(document.getElementById('m-'+key)) document.getElementById('m-'+key).classList.add('active-btn');
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
         }
 
         function adjustScale(f) { currentScale *= f; anchor.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`); }
@@ -119,7 +192,11 @@
 
         navigator.geolocation.watchPosition((pos) => {
             userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+<<<<<<< HEAD
             if (statusBar.innerText === "GPSを取得中...") statusBar.innerText = "GPS OK。場所を選んでください。";
+=======
+            if (statusBar.innerText === "GPS準備中...") statusBar.innerText = "GPS OK。場所を選択してください。";
+>>>>>>> acead847577ae7f93aac343bb4ea0d1ef3ede046
         }, null, { enableHighAccuracy: true });
     </script>
 </body>
