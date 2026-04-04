@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - ちらつき防止版</title>
+    <title>文教の森 AR - GPS固定・ウォークスルー版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -15,15 +15,13 @@
         .active-btn { background: #4CAF50 !important; color: white; }
         .top-left { top: 10px; left: 10px; }
         .ctrl-left { top: 30%; left: 10px; }
-        .ctrl-right { top: 30%; right: 10px; }
         .bottom-bar { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
         
         #log-panel { 
-            position: absolute; top: 10px; right: 10px; width: 220px; height: 140px; 
+            position: absolute; top: 10px; right: 10px; width: 240px; height: 160px; 
             background: rgba(0,0,0,0.8); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; 
             overflow-y: auto; pointer-events: none; border: 1px solid #0f0;
         }
-        .log-val { color: #ff0; }
     </style>
 </head>
 
@@ -31,114 +29,95 @@
     <div id="ui-layer">
         <div id="log-panel">
             [FILE] <span id="log-file" style="color:cyan">---</span><br>
-            [STATUS] <span id="log-status">待機中</span><br>
-            [POS] X:<span id="val-px" class="log-val">0</span> Y:<span id="val-py" class="log-val">0</span> Z:<span id="val-pz" class="log-val">0</span><br>
-            [SCALE] <span id="val-sc" class="log-val">50.0</span><br>
+            [STATUS] <span id="log-status">GPS待機中</span><br>
+            [LAT] <span id="val-lat" style="color:#ff0">---</span><br>
+            [LON] <span id="val-lon" style="color:#ff0">---</span><br>
+            [H-ADJ] <span id="val-py" style="color:#ff0">0</span>m<br>
             --------------------<br>
             <div id="log-history"></div>
         </div>
 
         <div class="menu top-left clickable">
-            <button id="btn-all" onclick="switchModel('all')">全体</button>
-            <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館</button>
-            <button id="btn-assembly1" onclick="switchModel('assembly1')">初代</button>
-            <button id="btn-assembly2" onclick="switchModel('assembly2')">二代目</button>
+            <button id="btn-tas" onclick="switchGPS('tas')">タスパークホテル(現在地)</button>
+            <button id="btn-kozakura" onclick="switchGPS('kozakura')">小桜館(現地)</button>
         </div>
 
         <div class="menu ctrl-left clickable">
-            <button onclick="moveModel('z', -5)">前へ</button>
-            <button onclick="moveModel('z', 5)">後へ</button>
-            <button onclick="moveModel('y', 1)">上へ(+1)</button>
-            <button onclick="moveModel('y', -1)">下へ(-1)</button>
-        </div>
-
-        <div class="menu ctrl-right clickable">
-            <button onclick="rotateModel(45)">回転</button>
-            <button onclick="scaleModel(1.2)">拡大</button>
-            <button onclick="scaleModel(0.8)">縮小</button>
-            <button onclick="resetCurrentPos()" style="background:#ff9800; color:white;">初期位置</button>
+            <button onclick="moveHeight(1)">建物を高く (+1m)</button>
+            <button onclick="moveHeight(-1)">建物を低く (-1m)</button>
+            <button onclick="rotateModel(45)">建物を回転 (45度)</button>
         </div>
 
         <div class="bottom-bar clickable">
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動・位置更新</button>
         </div>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true; antialias: true;">
-        <a-entity id="ar-anchor" position="0 0 -20" scale="50 50 50">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true;">
+        <a-entity id="ar-anchor" scale="50 50 50">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
         
-        <a-camera gps-camera rotation-reader fov="60" near="0.1" far="10000"></a-camera>
+        <a-camera gps-camera rotation-reader near="0.1" far="10000"></a-camera>
     </a-scene>
 
     <script>
-        const appData = {
-            // 各モデルの「高さ Y」をここで微調整して統一します
-            // もし小桜館に対して初代が高い場合は、初代の Y をマイナス側に調整してください
-            all:      { file: "all.glb", pos: {x:0, y:-5, z:-25} },
-            kozakura: { file: "Gun.glb", pos: {x:0, y:-1.6, z:-20} },
-            assembly1: { file: "1st.glb", pos: {x:0, y:-1.6, z:-20} },
-            assembly2: { file: "2nd.glb", pos: {x:0, y:-2.5, z:-20} }
+        const locations = {
+            tas: { lat: 38.101458, lon: 140.043358, file: "all.glb", name: "タスパークホテル" },
+            kozakura: { lat: 38.110945, lon: 140.036323, file: "Gun.glb", name: "小桜館" }
         };
 
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
-        function switchModel(key) {
-            const data = appData[key];
-            document.getElementById('log-file').innerText = data.file;
+        function addHistory(msg) {
+            const hist = document.getElementById('log-history');
+            hist.innerHTML = "> " + msg + "<br>" + hist.innerHTML;
+        }
+
+        function switchGPS(key) {
+            const loc = locations[key];
             
-            model.setAttribute('gltf-model', data.file);
+            // ログ更新
+            document.getElementById('log-file').innerText = loc.file;
+            document.getElementById('val-lat').innerText = loc.lat;
+            document.getElementById('val-lon').innerText = loc.lon;
+            document.getElementById('log-status').innerText = "位置設定中...";
+
+            // GPS座標の設定
+            anchor.setAttribute('gps-entity-place', `latitude: ${loc.lat}; longitude: ${loc.lon};`);
             
-            // 位置とスケールの適用
-            anchor.setAttribute('position', `${data.pos.x} ${data.pos.y} ${data.pos.z}`);
-            anchor.setAttribute('scale', "50 50 50");
+            // モデルの読み込み
+            model.setAttribute('gltf-model', loc.file);
             
+            // UIのアクティブ表示
             document.querySelectorAll('.top-left button').forEach(b => b.classList.remove('active-btn'));
             document.getElementById('btn-' + key).classList.add('active-btn');
             
-            updateDisplay();
+            addHistory(loc.name + " に固定しました");
         }
 
-        function updateDisplay() {
-            const pos = anchor.getAttribute('position');
-            const sc = anchor.getAttribute('scale');
-            document.getElementById('val-px').innerText = pos.x.toFixed(1);
-            document.getElementById('val-py').innerText = pos.y.toFixed(1);
-            document.getElementById('val-pz').innerText = pos.z.toFixed(1);
-            document.getElementById('val-sc').innerText = sc.x.toFixed(1);
-        }
+        model.addEventListener('model-loaded', () => {
+            document.getElementById('log-status').innerText = "表示成功";
+            addHistory("3Dモデルを展開しました");
+        });
 
-        function moveModel(axis, val) {
-            let p = anchor.getAttribute('position');
-            p[axis] += val;
+        // 高さ（浮き沈み）の調整
+        function moveHeight(val) {
+            let p = anchor.getAttribute('position') || {x:0, y:0, z:0};
+            p.y += val;
             anchor.setAttribute('position', p);
-            updateDisplay();
+            document.getElementById('val-py').innerText = p.y.toFixed(1);
         }
 
         function rotateModel(deg) {
-            let r = anchor.getAttribute('rotation');
+            let r = anchor.getAttribute('rotation') || {x:0, y:0, z:0};
             r.y += deg;
             anchor.setAttribute('rotation', r);
         }
 
-        function scaleModel(f) {
-            let s = anchor.getAttribute('scale');
-            s.x *= f; s.y *= f; s.z *= f;
-            anchor.setAttribute('scale', s);
-            updateDisplay();
-        }
-
-        function resetCurrentPos() {
-            const currentKey = document.querySelector('.active-btn').id.replace('btn-','');
-            const d = appData[currentKey].pos;
-            anchor.setAttribute('position', `${d.x} ${d.y} ${d.z}`);
-            anchor.setAttribute('scale', "50 50 50");
-            updateDisplay();
-        }
-
-        window.onload = () => { switchModel('all'); };
+        // 起動時にタスパークホテル側にセット
+        window.onload = () => { addHistory("GPS取得を開始します..."); };
     </script>
 </body>
 </html>
