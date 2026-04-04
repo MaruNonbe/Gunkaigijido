@@ -3,40 +3,36 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - 音声ガイド付</title>
+    <title>文教の森 AR - 音声ガイド修正版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
-        
         .menu { position: absolute; display: flex; flex-direction: column; gap: 8px; }
-        button { padding: 12px; border-radius: 10px; border: none; background: white; font-weight: bold; font-size: 13px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); cursor: pointer; color: #333; }
+        button { padding: 10px; border-radius: 8px; border: none; background: white; font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.4); }
         .active-btn { background: #4CAF50 !important; color: white; }
-        .audio-btn { background: #FF9800; color: white; border: 2px solid #fff; }
-        .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
-
-        .left-menu { top: 20px; left: 15px; }
-        .right-menu { top: 20px; right: 15px; align-items: flex-end; }
-        .top-center { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; }
-        #status-bar { position: absolute; bottom: 100px; width: 100%; text-align: center; color: #0f0; font-family: monospace; font-size: 11px; background: rgba(0,0,0,0.4); }
+        .audio-btn { background: #FF9800; color: white; border: 1px solid #fff; width: 40px; }
+        .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+        .left-menu { top: 10px; left: 10px; }
+        .right-menu { top: 10px; right: 10px; align-items: flex-end; }
+        .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 90%; justify-content: center; flex-wrap: wrap; }
+        #status-bar { position: absolute; bottom: 80px; width: 100%; text-align: center; color: #0f0; background: rgba(0,0,0,0.4); font-size: 11px; }
     </style>
 </head>
 
 <body>
     <div id="ui-layer">
         <div class="top-center clickable">
-            <button id="lang-jp" class="active-btn" onclick="setLang('jp')">日本語</button>
-            <button id="lang-en" onclick="setLang('en')">English</button>
+            <button id="lang-Japanese" class="active-btn" onclick="setLang('Japanese')">JP</button>
+            <button id="lang-English" onclick="setLang('English')">EN</button>
+            <button id="lang-Chinese" onclick="setLang('Chinese')">CN</button>
+            <button id="lang-Korean" onclick="setLang('Korean')">KR</button>
         </div>
 
         <div class="left-menu menu clickable">
-            <div class="label">建物選択 / 解説</div>
-            <div style="display:flex; gap:5px;">
-                <button id="m-all" onclick="switchModel('all')">全体</button>
-                <button class="audio-btn" onclick="playAudio('all')">🔊</button>
-            </div>
+            <div class="label">建物選択 / 音声</div>
             <div style="display:flex; gap:5px;">
                 <button id="m-gun" onclick="switchModel('kozakura')">小桜館</button>
                 <button class="audio-btn" onclick="playAudio('kozakura')">🔊</button>
@@ -49,31 +45,22 @@
                 <button id="m-2nd" onclick="switchModel('2nd')">二代目</button>
                 <button class="audio-btn" onclick="playAudio('2nd')">🔊</button>
             </div>
-            <button id="stop-audio" style="background:#607D8B; color:white; margin-top:5px;" onclick="stopAllAudio()">停止 ⏹</button>
+            <button onclick="stopAllAudio()" style="background:#607D8B; color:white;">停止 ⏹</button>
         </div>
 
         <div class="right-menu menu clickable">
-            <div class="label">サイズ調整</div>
-            <button onclick="changeScale(1)">等身大 (1倍)</button>
-            <button onclick="changeScale(50)">実寸大 (50倍)</button>
-            <div style="display:flex; gap:5px;">
-                <button onclick="adjustScale(1.2)">拡大</button>
-                <button onclick="adjustScale(0.8)">縮小</button>
-            </div>
-
-            <div class="label" style="margin-top:10px;">高度調整</div>
-            <button onclick="adjustHeight(0.5)">上げる (+0.5m)</button>
-            <button onclick="adjustHeight(-0.5)">下げる (-0.5m)</button>
-            
-            <div class="label" style="margin-top:10px;">システム</div>
-            <button onclick="downloadLog()" style="background:#2196F3; color:white;">ログ保存</button>
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
+            <div class="label">サイズ</div>
+            <button onclick="adjustScale(1.2)">拡大</button>
+            <button onclick="adjustScale(0.8)">縮小</button>
+            <div class="label" style="margin-top:5px;">高度</div>
+            <button onclick="adjustHeight(0.5)">▲</button>
+            <button onclick="adjustHeight(-0.5)">▼</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:5px;">再起動</button>
         </div>
-
-        <div id="status-bar">GPS待機中...</div>
+        <div id="status-bar">音声待機中</div>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
         <a-entity id="ar-anchor" scale="1 1 1" position="0 0 0">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
@@ -81,81 +68,63 @@
     </a-scene>
 
     <script>
-        const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
-        // 【音声ファイル設定】 ここを実際のファイル名に書き換えてください
-        const audioData = {
-            jp: { all: "all_jp.mp3", kozakura: "gun_jp.mp3", "1st": "1st_jp.mp3", "2nd": "2nd_jp.mp3" },
-            en: { all: "all_en.mp3", kozakura: "gun_en.mp3", "1st": "1st_en.mp3", "2nd": "2nd_en.mp3" }
+        const appData = { kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
+        
+        // 画像のファイル名に厳密に合わせました
+        const audioPath = "audio/"; // audioフォルダ内を参照
+        const audioFiles = {
+            kozakura: "Kozakura_",
+            "1st": "1st_NisiokitamaGunkai_",
+            "2nd": "2nd_NishiokitamaGUnkai_" // 画像の「GUnkai」という大文字小文字の揺れも再現
         };
 
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
         const statusBar = document.getElementById('status-bar');
         
-        let targetLoc = null;
+        let currentLang = 'Japanese';
+        let currentAudio = null;
         let currentHeight = 0;
         let currentScale = 1;
-        let currentLang = 'jp';
-        let currentAudio = null;
-        let eventLogs = [];
 
         function setLang(lang) {
             currentLang = lang;
-            document.getElementById('lang-jp').classList.toggle('active-btn', lang === 'jp');
-            document.getElementById('lang-en').classList.toggle('active-btn', lang === 'en');
-            // ボタンのテキスト切替（例）
-            document.getElementById('m-all').innerText = (lang === 'jp') ? "全体" : "Overall";
-            document.getElementById('m-gun').innerText = (lang === 'jp') ? "小桜館" : "Kozakura";
+            document.querySelectorAll('.top-center button').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('lang-' + lang).classList.add('active-btn');
+            statusBar.innerText = "言語切替: " + lang;
         }
 
         function playAudio(key) {
             stopAllAudio();
-            const file = audioData[currentLang][key];
-            currentAudio = new Audio(file);
-            currentAudio.play().catch(e => console.log("Audio play error: ", e));
-            statusBar.innerText = `再生中: ${file}`;
+            // 例: audio/Kozakura_Japanese.wav
+            const fileName = audioPath + audioFiles[key] + currentLang + ".wav";
+            currentAudio = new Audio(fileName);
+            currentAudio.play().then(() => {
+                statusBar.innerText = "再生中: " + fileName;
+            }).catch(e => {
+                statusBar.innerText = "再生エラー: ファイルが見つかりません";
+                console.error(e);
+            });
         }
 
         function stopAllAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-            }
-            statusBar.innerText = "音声停止中";
+            if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
+            statusBar.innerText = "停止中";
         }
-
-        navigator.geolocation.watchPosition((pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            if (!targetLoc) {
-                targetLoc = { lat: lat + 0.00014, lon: lon }; 
-                anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
-                switchModel('all');
-            }
-            statusBar.innerText = `GPS: ${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-        }, null, { enableHighAccuracy: true });
 
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
             document.querySelectorAll('.left-menu button').forEach(b => b.classList.remove('active-btn'));
-            const idMap = { all: 'm-all', kozakura: 'm-gun', '1st': 'm-1st', '2nd': 'm-2nd' };
-            document.getElementById(idMap[key]).classList.add('active-btn');
+            if(document.getElementById('m-'+key)) document.getElementById('m-'+key).classList.add('active-btn');
         }
 
-        function changeScale(val) { currentScale = val; updateTransform(); }
-        function adjustScale(f) { currentScale *= f; updateTransform(); }
-        function adjustHeight(v) { currentHeight += v; updateTransform(); }
-        function updateTransform() {
-            anchor.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-            anchor.setAttribute('position', `0 ${currentHeight} 0`);
-        }
-        function downloadLog() {
-            const blob = new Blob([eventLogs.join('\n')], {type: 'text/plain'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `AR_LOG_${new Date().getTime()}.txt`;
-            a.click();
-        }
+        function adjustScale(f) { currentScale *= f; anchor.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`); }
+        function adjustHeight(v) { currentHeight += v; anchor.setAttribute('position', `0 ${currentHeight} 0`); }
+
+        navigator.geolocation.getCurrentPosition((pos) => {
+            anchor.setAttribute('gps-entity-place', `latitude: ${pos.coords.latitude + 0.0001}; longitude: ${pos.coords.longitude};`);
+            switchModel('kozakura');
+        });
     </script>
 </body>
 </html>
