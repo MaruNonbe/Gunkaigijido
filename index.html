@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - 50倍拡大・位置統一版</title>
+    <title>文教の森 AR - ちらつき防止版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -39,81 +39,67 @@
         </div>
 
         <div class="menu top-left clickable">
-            <button id="btn-all" onclick="switchModel('all')">全体(all)</button>
-            <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館(Gun)</button>
-            <button id="btn-assembly1" onclick="switchModel('assembly1')">初代(1st)</button>
-            <button id="btn-assembly2" onclick="switchModel('assembly2')">二代目(2nd)</button>
+            <button id="btn-all" onclick="switchModel('all')">全体</button>
+            <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館</button>
+            <button id="btn-assembly1" onclick="switchModel('assembly1')">初代</button>
+            <button id="btn-assembly2" onclick="switchModel('assembly2')">二代目</button>
         </div>
 
         <div class="menu ctrl-left clickable">
-            <button onclick="moveModel('z', -5)">もっと前へ</button>
-            <button onclick="moveModel('z', 5)">もっと後へ</button>
-            <button onclick="moveModel('y', 5)">もっと上へ(+5)</button>
-            <button onclick="moveModel('y', -5)">もっと下へ(-5)</button>
+            <button onclick="moveModel('z', -5)">前へ</button>
+            <button onclick="moveModel('z', 5)">後へ</button>
+            <button onclick="moveModel('y', 1)">上へ(+1)</button>
+            <button onclick="moveModel('y', -1)">下へ(-1)</button>
         </div>
 
         <div class="menu ctrl-right clickable">
-            <button onclick="rotateModel(45)">45度回転</button>
-            <button onclick="scaleModel(1.2)">さらに拡大</button>
+            <button onclick="rotateModel(45)">回転</button>
+            <button onclick="scaleModel(1.2)">拡大</button>
             <button onclick="scaleModel(0.8)">縮小</button>
-            <button onclick="resetCurrentPos()" style="background:#ff9800; color:white;">初期位置に戻す</button>
+            <button onclick="resetCurrentPos()" style="background:#ff9800; color:white;">初期位置</button>
         </div>
 
         <div class="bottom-bar clickable">
-            <button onclick="location.reload()" style="background:#f44336; color:white;">アプリ再起動</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
         </div>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true; antialias: true;">
         <a-entity id="ar-anchor" position="0 0 -20" scale="50 50 50">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
-        <a-camera gps-camera rotation-reader></a-camera>
+        
+        <a-camera gps-camera rotation-reader fov="60" near="0.1" far="10000"></a-camera>
     </a-scene>
 
     <script>
         const appData = {
-            // 全モデル共通で奥行き Z:-20、サイズ Scale:50 に設定
-            all: { file: "all.glb", pos: "0 0 -20" },
-            kozakura: { file: "Gun.glb", pos: "0 0 -20" },
-            assembly1: { file: "1st.glb", pos: "0 0 -20" },
-            // 2代目は埋まりやすいため、初期位置を地上10m(Y:10)に設定
-            assembly2: { file: "2nd.glb", pos: "0 10 -20" }
+            // 各モデルの「高さ Y」をここで微調整して統一します
+            // もし小桜館に対して初代が高い場合は、初代の Y をマイナス側に調整してください
+            all:      { file: "all.glb", pos: {x:0, y:-5, z:-25} },
+            kozakura: { file: "Gun.glb", pos: {x:0, y:-1.6, z:-20} },
+            assembly1: { file: "1st.glb", pos: {x:0, y:-1.6, z:-20} },
+            assembly2: { file: "2nd.glb", pos: {x:0, y:-2.5, z:-20} }
         };
 
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
-        function addHistory(msg) {
-            const hist = document.getElementById('log-history');
-            hist.innerHTML = "> " + msg + "<br>" + hist.innerHTML;
-        }
-
         function switchModel(key) {
             const data = appData[key];
             document.getElementById('log-file').innerText = data.file;
-            document.getElementById('log-status').innerText = "読込中...";
             
             model.setAttribute('gltf-model', data.file);
             
-            // 位置の統一設定
-            anchor.setAttribute('position', data.pos);
-            anchor.setAttribute('scale', "50 50 50"); // 50倍に固定
+            // 位置とスケールの適用
+            anchor.setAttribute('position', `${data.pos.x} ${data.pos.y} ${data.pos.z}`);
+            anchor.setAttribute('scale', "50 50 50");
             
             document.querySelectorAll('.top-left button').forEach(b => b.classList.remove('active-btn'));
             document.getElementById('btn-' + key).classList.add('active-btn');
             
             updateDisplay();
-            addHistory(key + " を表示サイズ50倍で呼出");
         }
-
-        model.addEventListener('model-loaded', () => {
-            document.getElementById('log-status').innerText = "成功！表示中";
-        });
-
-        model.addEventListener('model-error', () => {
-            document.getElementById('log-status').innerText = "失敗(404)";
-        });
 
         function updateDisplay() {
             const pos = anchor.getAttribute('position');
@@ -146,7 +132,8 @@
 
         function resetCurrentPos() {
             const currentKey = document.querySelector('.active-btn').id.replace('btn-','');
-            anchor.setAttribute('position', appData[currentKey].pos);
+            const d = appData[currentKey].pos;
+            anchor.setAttribute('position', `${d.x} ${d.y} ${d.z}`);
             anchor.setAttribute('scale', "50 50 50");
             updateDisplay();
         }
