@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - アンカー固定版</title>
+    <title>文教の森 AR - 地点選択・アンカー固定版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -12,16 +12,17 @@
         .clickable { pointer-events: auto; }
         button { 
             padding: 10px; border-radius: 8px; border: none; background: white; 
-            font-weight: bold; font-size: 12px; cursor: pointer; 
+            font-weight: bold; font-size: 11px; cursor: pointer; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.4); color: #333;
             touch-action: manipulation; -webkit-user-select: none; user-select: none;
         }
         .active-btn { background: #4CAF50 !important; color: white; }
+        .loc-btn { background: #2196F3; color: white; min-width: 80px; }
         .audio-btn { background: #FF9800; color: white; border: 1px solid #fff; width: 35px; }
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
         .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
         .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 95%; justify-content: center; flex-wrap: wrap; }
-        .left-menu { top: 60px; left: 10px; }
+        .left-menu { top: 60px; left: 10px; width: 180px; }
         .right-menu { top: 60px; right: 10px; align-items: flex-end; }
         #status-bar { position: absolute; bottom: 80px; width: 100%; text-align: center; color: #0f0; background: rgba(0,0,0,0.4); font-size: 11px; padding: 4px 0; }
     </style>
@@ -37,10 +38,12 @@
         </div>
 
         <div class="left-menu menu clickable">
-            <div class="label">アンカー再設定（現在地に固定）</div>
-            <button class="active-btn" onclick="resetAnchor()">ここに建物を固定する</button>
+            <div class="label">建物を固定する場所を選択</div>
+            <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">① 現在地(15m先)</button>
+            <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">② タスパークホテル</button>
+            <button id="btn-kozakura" class="loc-btn" onclick="setAnchorLocation('kozakura')">③ 小桜館</button>
             
-            <div class="label" style="margin-top:10px;">モデル選択</div>
+            <div class="label" style="margin-top:10px;">表示モデル</div>
             <div style="display:flex; gap:4px;"><button id="m-all" onclick="switchModel('all')">全体</button></div>
             <div style="display:flex; gap:4px;"><button id="m-gun" onclick="switchModel('kozakura')">小桜館</button><button class="audio-btn" onclick="playAudio('kozakura')">🔊</button></div>
             <div style="display:flex; gap:4px;"><button id="m-1st" onclick="switchModel('1st')">初代</button><button class="audio-btn" onclick="playAudio('1st')">🔊</button></div>
@@ -54,22 +57,28 @@
             <div style="display:flex; gap:4px;"><button onclick="adjustHeight(0.5)">上昇</button><button onclick="adjustHeight(-0.5)">下降</button></div>
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px;">再起動</button>
         </div>
-        <div id="status-bar">GPSを探しています...</div>
+        <div id="status-bar">GPSを取得中...</div>
     </div>
 
     <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true;">
-        <a-entity id="ar-anchor" scale="1 1 1">
+        <a-entity id="ar-anchor">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
-        <a-camera id="camera" gps-camera="minDistance: 10000; positionMinAccuracy: 1000;" rotation-reader></a-camera>
+        <a-camera gps-camera="minDistance: 100000; positionMinAccuracy: 1000;" rotation-reader></a-camera>
     </a-scene>
 
     <script>
         const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
         const audioFiles = { kozakura: "Kozakura_", "1st": "1st_NisiokitamaGunkai_", "2nd": "2nd_NishiokitamaGUnkai_" };
+        
+        // 座標定義
+        const locations = {
+            tas: { lat: 38.1068, lon: 140.0400 }, // タスパークホテル（例：微調整が必要な場合があります）
+            kozakura: { lat: 38.10134, lon: 140.04299 } // 小桜館
+        };
 
         const anchor = document.getElementById('ar-anchor'), model = document.getElementById('main-model'), statusBar = document.getElementById('status-bar');
-        let userLoc = null, isAnchored = false, currentLang = 'Japanese', currentAudio = null, currentHeight = 0, currentScale = 1;
+        let userLoc = null, currentLang = 'Japanese', currentAudio = null, currentHeight = 0, currentScale = 1;
 
         // センサー許可
         window.addEventListener('click', () => {
@@ -78,31 +87,32 @@
             }
         }, {once: true});
 
-        // 1. 初回GPS取得時に一度だけアンカーをセットする
-        function setInitialAnchor(pos) {
-            if (isAnchored) return;
-            userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-            
-            // 15m先に配置して固定
-            const targetLat = userLoc.lat + 0.00015;
-            const targetLon = userLoc.lon;
-            
-            anchor.setAttribute('gps-entity-place', `latitude: ${targetLat}; longitude: ${targetLon};`);
-            switchModel('all');
-            
-            isAnchored = true;
-            statusBar.innerText = "GPS配置完了：位置をアンカー固定しました";
-        }
+        // 地点を選択してアンカーを固定する関数
+        function setAnchorLocation(type) {
+            let target = null;
+            if (type === 'current') {
+                if (!userLoc) { alert("GPSを取得中です。しばらくお待ちください。"); return; }
+                target = { lat: userLoc.lat + 0.00015, lon: userLoc.lon }; // 15m北
+                statusBar.innerText = "固定完了：現在地の15m先にアンカーを打ちました";
+            } else {
+                target = locations[type];
+                statusBar.innerText = "固定完了：" + (type === 'tas' ? "タスパークホテル" : "小桜館") + "にアンカーを打ちました";
+            }
 
-        // 手動で今の向きの先に再固定する
-        function resetAnchor() {
-            isAnchored = false;
-            navigator.geolocation.getCurrentPosition(setInitialAnchor);
+            if (target) {
+                anchor.setAttribute('gps-entity-place', `latitude: ${target.lat}; longitude: ${target.lon};`);
+                // UIのボタン色を変更
+                document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('active-btn'));
+                document.getElementById('btn-' + type).classList.add('active-btn');
+                
+                // 初回のみモデルを表示
+                if (!model.getAttribute('gltf-model')) switchModel('all');
+            }
         }
 
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
-            document.querySelectorAll('.left-menu button').forEach(b => b.classList.remove('active-btn'));
+            document.querySelectorAll('.left-menu button:not(.loc-btn):not(.audio-btn)').forEach(b => b.classList.remove('active-btn'));
             if(document.getElementById('m-'+key)) document.getElementById('m-'+key).classList.add('active-btn');
         }
 
@@ -116,16 +126,21 @@
             stopAllAudio();
             const fileName = "audio/" + audioFiles[key] + currentLang + ".wav";
             currentAudio = new Audio(fileName);
-            currentAudio.play().then(() => { statusBar.innerText = "音声再生中"; }).catch(() => { statusBar.innerText = "再生失敗"; });
+            currentAudio.play().then(() => { statusBar.innerText = "音声再生中..."; }).catch(() => { statusBar.innerText = "再生失敗"; });
         }
 
         function stopAllAudio() { if (currentAudio) { currentAudio.pause(); } statusBar.innerText = "音声停止"; }
         function adjustScale(f) { currentScale *= f; anchor.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`); }
         function adjustHeight(v) { currentHeight += v; anchor.setAttribute('position', `0 ${currentHeight} 0`); }
 
-        // GPS監視を開始（初回のみ反応するようにロジックを組む）
-        navigator.geolocation.watchPosition(setInitialAnchor, (err) => {
-            statusBar.innerText = "GPS受信中...";
+        // GPS監視
+        navigator.geolocation.watchPosition((pos) => {
+            userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            if (statusBar.innerText === "GPSを取得中...") {
+                statusBar.innerText = "GPS準備完了。場所を選んでください。";
+            }
+        }, (err) => {
+            statusBar.innerText = "GPS信号を待機中...";
         }, { enableHighAccuracy: true });
     </script>
 </body>
