@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - GPS固定・ウォークスルー版</title>
+    <title>文教の森 AR - 自動正面配置版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -28,28 +28,28 @@
 <body>
     <div id="ui-layer">
         <div id="log-panel">
-            [FILE] <span id="log-file" style="color:cyan">---</span><br>
-            [STATUS] <span id="log-status">GPS待機中</span><br>
-            [LAT] <span id="val-lat" style="color:#ff0">---</span><br>
-            [LON] <span id="val-lon" style="color:#ff0">---</span><br>
-            [H-ADJ] <span id="val-py" style="color:#ff0">0</span>m<br>
+            [STATUS] <span id="log-status">位置取得中...</span><br>
+            [TARGET] <span id="log-file" style="color:cyan">---</span><br>
+            [DIST] 建物まで約5m固定<br>
             --------------------<br>
             <div id="log-history"></div>
         </div>
 
         <div class="menu top-left clickable">
-            <button id="btn-tas" onclick="switchGPS('tas')">タスパークホテル(現在地)</button>
-            <button id="btn-kozakura" onclick="switchGPS('kozakura')">小桜館(現地)</button>
+            <button id="btn-all" onclick="spawnInFront('all.glb', '全体')">全体表示</button>
+            <button id="btn-kozakura" onclick="spawnInFront('Gun.glb', '小桜館')">小桜館</button>
+            <button id="btn-1st" onclick="spawnInFront('1st.glb', '初代')">初代</button>
+            <button id="btn-2nd" onclick="spawnInFront('2nd.glb', '二代目')">二代目</button>
         </div>
 
         <div class="menu ctrl-left clickable">
-            <button onclick="moveHeight(1)">建物を高く (+1m)</button>
-            <button onclick="moveHeight(-1)">建物を低く (-1m)</button>
-            <button onclick="rotateModel(45)">建物を回転 (45度)</button>
+            <button onclick="adjustHeight(1)">建物を高く (+1m)</button>
+            <button onclick="adjustHeight(-1)">建物を低く (-1m)</button>
+            <button onclick="rotateModel(45)">45度回転</button>
         </div>
 
         <div class="bottom-bar clickable">
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動・位置更新</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動（現在地で再配置）</button>
         </div>
     </div>
 
@@ -62,11 +62,6 @@
     </a-scene>
 
     <script>
-        const locations = {
-            tas: { lat: 38.101458, lon: 140.043358, file: "all.glb", name: "タスパークホテル" },
-            kozakura: { lat: 38.110945, lon: 140.036323, file: "Gun.glb", name: "小桜館" }
-        };
-
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
@@ -75,39 +70,34 @@
             hist.innerHTML = "> " + msg + "<br>" + hist.innerHTML;
         }
 
-        function switchGPS(key) {
-            const loc = locations[key];
+        // 自分の現在地の「5m北」に建物を召喚する関数
+        function spawnInFront(file, name) {
+            document.getElementById('log-file').innerText = name;
             
-            // ログ更新
-            document.getElementById('log-file').innerText = loc.file;
-            document.getElementById('val-lat').innerText = loc.lat;
-            document.getElementById('val-lon').innerText = loc.lon;
-            document.getElementById('log-status').innerText = "位置設定中...";
+            // 現在のGPS位置を取得
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
 
-            // GPS座標の設定
-            anchor.setAttribute('gps-entity-place', `latitude: ${loc.lat}; longitude: ${loc.lon};`);
-            
-            // モデルの読み込み
-            model.setAttribute('gltf-model', loc.file);
-            
-            // UIのアクティブ表示
-            document.querySelectorAll('.top-left button').forEach(b => b.classList.remove('active-btn'));
-            document.getElementById('btn-' + key).classList.add('active-btn');
-            
-            addHistory(loc.name + " に固定しました");
+                // 緯度を約5m分だけ北にずらす（1度 ≒ 111km なので、0.000045度 ≒ 5m）
+                const targetLat = lat + 0.000045; 
+                const targetLon = lon;
+
+                anchor.setAttribute('gps-entity-place', `latitude: ${targetLat}; longitude: ${targetLon};`);
+                model.setAttribute('gltf-model', file);
+                
+                addHistory(`${name}を正面5mに配置`);
+                document.getElementById('log-status').innerText = "配置完了";
+            }, (err) => {
+                addHistory("GPSエラー: 許可を確認してください", true);
+            });
         }
 
-        model.addEventListener('model-loaded', () => {
-            document.getElementById('log-status').innerText = "表示成功";
-            addHistory("3Dモデルを展開しました");
-        });
-
-        // 高さ（浮き沈み）の調整
-        function moveHeight(val) {
+        function adjustHeight(val) {
             let p = anchor.getAttribute('position') || {x:0, y:0, z:0};
             p.y += val;
             anchor.setAttribute('position', p);
-            document.getElementById('val-py').innerText = p.y.toFixed(1);
+            addHistory(`高さ調整: ${p.y}m`);
         }
 
         function rotateModel(deg) {
@@ -116,8 +106,14 @@
             anchor.setAttribute('rotation', r);
         }
 
-        // 起動時にタスパークホテル側にセット
-        window.onload = () => { addHistory("GPS取得を開始します..."); };
+        model.addEventListener('model-loaded', () => {
+            document.getElementById('log-status').innerText = "表示成功";
+        });
+
+        // 起動時に「全体」を自動配置
+        window.onload = () => {
+            setTimeout(() => { spawnInFront('all.glb', '全体'); }, 2000); // 起動2秒後に配置
+        };
     </script>
 </body>
 </html>
