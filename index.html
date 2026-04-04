@@ -9,18 +9,18 @@
     <style>
         body { 
             margin: 0; overflow: hidden; font-family: sans-serif; background: #000;
-            touch-action: pan-x pan-y; /* ピンチズーム防止 [cite: 2] */
+            touch-action: none; /* ピンチズームやスワイプの干渉を防止 */
         }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
         
-        /* ボタン共通：ダブルタップズームと選択を防止 [cite: 2] */
+        /* ボタン共通：ズーム防止と選択無効化 */
         button { 
             padding: 10px; border-radius: 8px; border: none; background: white; 
             font-weight: bold; font-size: 12px; cursor: pointer; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.4); color: #333;
-            touch-action: manipulation; /* ダブルタップズーム防止 [cite: 2] */
-            -webkit-user-select: none; user-select: none; /* テキスト選択防止 [cite: 2] */
+            touch-action: manipulation;
+            -webkit-user-select: none; user-select: none;
         }
         .active-btn { background: #4CAF50 !important; color: white; }
         .audio-btn { background: #FF9800; color: white; border: 1px solid #fff; width: 35px; }
@@ -83,7 +83,7 @@
         const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
         const audioPath = "audio/"; 
         const audioFiles = { kozakura: "Kozakura_", "1st": "1st_NisiokitamaGunkai_", "2nd": "2nd_NishiokitamaGUnkai_" };
-        const kozakuraLoc = { lat: 38.10134, lon: 140.04299 }; // 小桜館の座標 [cite: 2]
+        const kozakuraLoc = { lat: 38.10134, lon: 140.04299 }; // 小桜館の固定座標
 
         const anchor = document.getElementById('ar-anchor'), model = document.getElementById('main-model'), statusBar = document.getElementById('status-bar');
         let userLoc = null, targetLoc = null, currentLang = 'Japanese', currentAudio = null, currentHeight = 0, currentScale = 1, eventLogs = [];
@@ -91,13 +91,16 @@
         function setLocation(type) {
             if (type === 'current' && userLoc) {
                 targetLoc = { lat: userLoc.lat + 0.00015, lon: userLoc.lon };
+                statusBar.innerText = "地点: 現在地(15m先)";
             } else if (type === 'kozakura') {
                 targetLoc = kozakuraLoc;
+                statusBar.innerText = "地点: 小桜館(固定位置)";
             }
-            anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
-            document.getElementById('loc-current').classList.toggle('active-btn', type === 'current');
-            document.getElementById('loc-kozakura').classList.toggle('active-btn', type === 'kozakura');
-            statusBar.innerText = "地点切替完了";
+            if (targetLoc) {
+                anchor.setAttribute('gps-entity-place', `latitude: ${targetLoc.lat}; longitude: ${targetLoc.lon};`);
+                document.getElementById('loc-current').classList.toggle('active-btn', type === 'current');
+                document.getElementById('loc-kozakura').classList.toggle('active-btn', type === 'kozakura');
+            }
         }
 
         function setLang(lang) {
@@ -111,14 +114,14 @@
             stopAllAudio();
             const fileName = audioPath + audioFiles[key] + currentLang + ".wav";
             currentAudio = new Audio(fileName);
-            currentAudio.play().then(() => { statusBar.innerText = "再生中: " + fileName; }).catch(e => { statusBar.innerText = "再生エラー"; });
+            currentAudio.play().then(() => { statusBar.innerText = "再生中: " + fileName; }).catch(e => { statusBar.innerText = "音声再生エラー"; });
         }
 
         function stopAllAudio() { if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; } statusBar.innerText = "音声停止"; }
 
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
-            document.querySelectorAll('.left-menu button:not(.loc-btn)').forEach(b => b.classList.remove('active-btn'));
+            document.querySelectorAll('.left-menu button:not(.loc-btn):not(.audio-btn)').forEach(b => b.classList.remove('active-btn'));
             if(document.getElementById('m-'+key)) document.getElementById('m-'+key).classList.add('active-btn');
         }
 
@@ -142,7 +145,7 @@
             if (!targetLoc) { setLocation('current'); switchModel('all'); }
             eventLogs.push(`GPS: ${userLoc.lat},${userLoc.lon}`);
             if (statusBar.innerText.includes("GPSを取得中")) statusBar.innerText = "GPS OK";
-        }, null, { enableHighAccuracy: true });
+        }, (err) => { statusBar.innerText = "GPSエラー: " + err.message; }, { enableHighAccuracy: true });
     </script>
 </body>
 </html>
