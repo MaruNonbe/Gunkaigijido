@@ -3,53 +3,74 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>文教の森 AR - 自動正面配置版</title>
+    <title>文教の森 ARポータル - 統合版</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
-        .menu { position: absolute; display: flex; flex-direction: column; gap: 4px; }
-        button { padding: 12px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; font-size: 13px; cursor: pointer; }
-        .active-btn { background: #4CAF50 !important; color: white; }
-        .top-left { top: 10px; left: 10px; }
-        .ctrl-left { top: 30%; left: 10px; }
-        .bottom-bar { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+
+        /* メニュー配置 */
+        .menu-group { position: absolute; display: flex; flex-direction: column; gap: 6px; }
+        button { padding: 10px; border-radius: 8px; border: none; background: rgba(255,255,255,0.9); font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 12px; }
         
-        #log-panel { 
-            position: absolute; top: 10px; right: 10px; width: 240px; height: 160px; 
-            background: rgba(0,0,0,0.8); color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; 
-            overflow-y: auto; pointer-events: none; border: 1px solid #0f0;
-        }
+        .top-left { top: 10px; left: 10px; }
+        .top-right { top: 10px; right: 10px; flex-direction: row; }
+        .active-btn { background: #4CAF50 !important; color: white; }
+
+        /* 操作パネル（左右中央） */
+        .ctrl-left { top: 30%; left: 10px; }
+        .ctrl-right { top: 30%; right: 10px; }
+
+        /* 下部アクション */
+        .bottom-bar { position: absolute; bottom: 25px; width: 100%; display: flex; justify-content: center; gap: 12px; }
+        .btn-round { width: 50px; height: 50px; border-radius: 50%; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+
+        /* 説明パネル */
+        #desc-panel { position: absolute; bottom: 0; width: 100%; height: 22%; background: rgba(0,0,0,0.85); color: white; border-radius: 15px 15px 0 0; display: none; padding: 15px; box-sizing: border-box; }
     </style>
 </head>
 
 <body>
     <div id="ui-layer">
-        <div id="log-panel">
-            [STATUS] <span id="log-status">位置取得中...</span><br>
-            [TARGET] <span id="log-file" style="color:cyan">---</span><br>
-            [DIST] 建物まで約5m固定<br>
-            --------------------<br>
-            <div id="log-history"></div>
+        <div class="menu-group top-left clickable">
+            <div style="color:white; font-size:10px; margin-bottom:2px;">▼ 建物選択</div>
+            <button id="btn-all" class="active-btn" onclick="switchModel('all')">全体</button>
+            <button id="btn-kozakura" onclick="switchModel('kozakura')">小桜館</button>
+            <button id="btn-1st" onclick="switchModel('assembly1')">初代</button>
+            <button id="btn-2nd" onclick="switchModel('assembly2')">二代目</button>
+            <div style="color:white; font-size:10px; margin-top:10px; margin-bottom:2px;">▼ GPS位置</div>
+            <button id="gps-tas" onclick="setGPS('tas')">タス(現在地)</button>
+            <button id="gps-genchi" onclick="setGPS('genchi')">現地(小桜館)</button>
         </div>
 
-        <div class="menu top-left clickable">
-            <button id="btn-all" onclick="spawnInFront('all.glb', '全体')">全体表示</button>
-            <button id="btn-kozakura" onclick="spawnInFront('Gun.glb', '小桜館')">小桜館</button>
-            <button id="btn-1st" onclick="spawnInFront('1st.glb', '初代')">初代</button>
-            <button id="btn-2nd" onclick="spawnInFront('2nd.glb', '二代目')">二代目</button>
+        <div class="menu-group top-right clickable">
+            <button onclick="changeLang('jp')">JP</button>
+            <button onclick="changeLang('zh')">CN</button>
+            <button onclick="changeLang('ko')">KO</button>
+            <button onclick="changeLang('en')">EN</button>
         </div>
 
-        <div class="menu ctrl-left clickable">
-            <button onclick="adjustHeight(1)">建物を高く (+1m)</button>
-            <button onclick="adjustHeight(-1)">建物を低く (-1m)</button>
-            <button onclick="rotateModel(45)">45度回転</button>
+        <div class="menu-group ctrl-left clickable">
+            <button onclick="adjust('y', 1)">上へ</button>
+            <button onclick="adjust('y', -1)">下へ</button>
+        </div>
+        <div class="menu-group ctrl-right clickable">
+            <button onclick="rotate(45)">回転</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動</button>
         </div>
 
         <div class="bottom-bar clickable">
-            <button onclick="location.reload()" style="background:#f44336; color:white;">再起動（現在地で再配置）</button>
+            <button class="btn-round" onclick="takePhoto()">📸</button>
+            <button class="btn-round" onclick="startVideo()">🎥</button>
+            <button class="btn-round" onclick="shareSNS()">🔗</button>
+            <button class="btn-round" onclick="toggleInfo()">ℹ️</button>
+        </div>
+
+        <div id="desc-panel" class="clickable">
+            <h3 id="info-title" style="margin:0; font-size: 16px;">建物情報</h3>
+            <p id="info-text" style="font-size: 13px; margin-top:5px;">読込中...</p>
         </div>
     </div>
 
@@ -57,62 +78,68 @@
         <a-entity id="ar-anchor" scale="50 50 50">
             <a-entity id="main-model" gltf-model=""></a-entity>
         </a-entity>
-        
         <a-camera gps-camera rotation-reader near="0.1" far="10000"></a-camera>
     </a-scene>
 
     <script>
+        const appData = {
+            all: { file: "all.glb", jp: { title: "全体像", text: "明治時代の郡役所と議事堂の配置です。" }, en: { title: "Full View", text: "Meiji-era layout." }, zh: { title: "全景", text: "明治时代的布局。" }, ko: { title: "전체 모습", text: "메이지 시대의 배치입니다." } },
+            kozakura: { file: "Gun.glb", jp: { title: "旧西置賜郡役所", text: "1878年築。最古の郡役所建築。" }, en: { title: "Former District Office", text: "Built in 1878." }, zh: { title: "旧郡公署", text: "建于1878年。" }, ko: { title: "구 군청", text: "1878년 완공." } },
+            assembly1: { file: "1st.glb", jp: { title: "初代郡会議事堂", text: "明治20年築の洋風木造建築。" }, en: { title: "1st Assembly Hall", text: "Built in 1887." }, zh: { title: "第一代议事堂", text: "建于1887年。" }, ko: { title: "초대 의사당", text: "1887년 완공." } },
+            assembly2: { file: "2nd.glb", jp: { title: "二代目郡会議事堂", text: "明治44年に新築された議事堂。" }, en: { title: "2nd Assembly Hall", text: "Built in 1911." }, zh: { title: "第二代议事堂", text: "建于1911年。" }, ko: { title: "2대 의사당", text: "1911년 완공." } }
+        };
+
+        const gpsData = {
+            tas: { lat: 38.101458, lon: 140.043358 },
+            genchi: { lat: 38.110945, lon: 140.036323 }
+        };
+
+        let currentMode = "all";
+        let currentLang = "jp";
         const anchor = document.getElementById('ar-anchor');
         const model = document.getElementById('main-model');
 
-        function addHistory(msg) {
-            const hist = document.getElementById('log-history');
-            hist.innerHTML = "> " + msg + "<br>" + hist.innerHTML;
-        }
-
-        // 自分の現在地の「5m北」に建物を召喚する関数
-        function spawnInFront(file, name) {
-            document.getElementById('log-file').innerText = name;
+        // GPS地点に正面5mで配置する関数
+        function setGPS(key) {
+            const loc = gpsData[key];
+            // 指定座標の「5m北(緯度+0.000045)」に配置
+            anchor.setAttribute('gps-entity-place', `latitude: ${loc.lat + 0.000045}; longitude: ${loc.lon};`);
             
-            // 現在のGPS位置を取得
-            navigator.geolocation.getCurrentPosition((pos) => {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
-
-                // 緯度を約5m分だけ北にずらす（1度 ≒ 111km なので、0.000045度 ≒ 5m）
-                const targetLat = lat + 0.000045; 
-                const targetLon = lon;
-
-                anchor.setAttribute('gps-entity-place', `latitude: ${targetLat}; longitude: ${targetLon};`);
-                model.setAttribute('gltf-model', file);
-                
-                addHistory(`${name}を正面5mに配置`);
-                document.getElementById('log-status').innerText = "配置完了";
-            }, (err) => {
-                addHistory("GPSエラー: 許可を確認してください", true);
-            });
+            document.querySelectorAll('.top-left button[id^="gps-"]').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('gps-' + key).classList.add('active-btn');
+            updateUI();
         }
 
-        function adjustHeight(val) {
-            let p = anchor.getAttribute('position') || {x:0, y:0, z:0};
-            p.y += val;
-            anchor.setAttribute('position', p);
-            addHistory(`高さ調整: ${p.y}m`);
+        function switchModel(key) {
+            currentMode = key;
+            model.setAttribute('gltf-model', appData[key].file);
+            document.querySelectorAll('.top-left button[id^="btn-"]').forEach(b => b.classList.remove('active-btn'));
+            document.getElementById('btn-' + (key === 'assembly1' ? '1st' : key === 'assembly2' ? '2nd' : key)).classList.add('active-btn');
+            updateUI();
         }
 
-        function rotateModel(deg) {
-            let r = anchor.getAttribute('rotation') || {x:0, y:0, z:0};
-            r.y += deg;
-            anchor.setAttribute('rotation', r);
+        function updateUI() {
+            const d = appData[currentMode][currentLang];
+            document.getElementById('info-title').innerText = d.title;
+            document.getElementById('info-text').innerText = d.text;
         }
 
-        model.addEventListener('model-loaded', () => {
-            document.getElementById('log-status').innerText = "表示成功";
-        });
+        function changeLang(l) { currentLang = l; updateUI(); }
+        function toggleInfo() { const p = document.getElementById('desc-panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; }
+        
+        function adjust(ax, v) { let p = anchor.getAttribute('position') || {x:0, y:0, z:0}; p[ax] += v; anchor.setAttribute('position', p); }
+        function rotate(deg) { let r = anchor.getAttribute('rotation') || {x:0, y:0, z:0}; r.y += deg; anchor.setAttribute('rotation', r); }
 
-        // 起動時に「全体」を自動配置
-        window.onload = () => {
-            setTimeout(() => { spawnInFront('all.glb', '全体'); }, 2000); // 起動2秒後に配置
+        function takePhoto() { alert("スクリーンショットを撮影してください"); }
+        function startVideo() { alert("画面収録を開始してください"); }
+        function shareSNS() { window.open("https://twitter.com/intent/tweet?text=文教の森AR体験中！", "_blank"); }
+
+        // 初期起動（タスを基準に全体を表示）
+        window.onload = () => { 
+            setTimeout(() => { 
+                switchModel('all');
+                setGPS('tas');
+            }, 1000); 
         };
     </script>
 </body>
