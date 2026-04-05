@@ -3,87 +3,161 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - 空間固定最終版</title>
+    <title>文教の森 AR - 全機能復旧・完全版</title>
+
     <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+
     <style>
         body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; touch-action: none; }
         #ui-layer { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
-        button { padding: 10px; border-radius: 8px; border: none; background: white; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); color: #333; touch-action: manipulation; }
+        
+        button { 
+            padding: 10px; border-radius: 8px; border: none; background: white; 
+            font-weight: bold; font-size: 11px; cursor: pointer; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); color: #333;
+            touch-action: manipulation;
+        }
         .active-btn { background: #4caf50 !important; color: white; }
+        .audio-btn { background: #ff9800; color: white; min-width: 50px; }
         .loc-btn { background: #2196f3; color: white; width: 100%; }
+        .rotate-btn { background: #9c27b0 !important; color: white; flex: 1; }
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
-        .menu { position: absolute; display: flex; flex-direction: column; gap: 8px; }
-        .left-menu { top: 20px; left: 10px; width: 180px; }
-        .right-menu { top: 20px; right: 10px; align-items: flex-end; width: 130px; }
-        #status-bar { position: absolute; bottom: 80px; width: 100%; text-align: center; color: #0f0; background: rgba(0,0,0,0.5); font-size: 12px; padding: 6px 0; }
+
+        .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
+        .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 95%; justify-content: center; flex-wrap: wrap; }
+        .left-menu { top: 60px; left: 10px; width: 210px; }
+        .right-menu { top: 60px; right: 10px; align-items: flex-end; width: 130px; }
+        
+        .model-row { display: flex; gap: 4px; width: 100%; }
+        .model-row > button:first-child { flex: 1; }
+        #status-bar { position: absolute; bottom: 80px; width: 100%; text-align: center; color: #0f0; background: rgba(0, 0, 0, 0.45); font-size: 11px; padding: 4px 0; }
     </style>
 </head>
+
 <body>
     <div id="ui-layer">
-        <div class="left-menu menu clickable">
-            <div class="label">建物を配置</div>
-            <button class="loc-btn" onclick="setAnchorLocation('current')">① 現在地の北側へ15m</button>
-            <button class="loc-btn" onclick="setAnchorLocation('office')">② 旧西置賜郡役所</button>
-            <div class="label" style="margin-top:10px;">モデル選択</div>
-            <button id="m-all" onclick="switchModel('all')">全体(all)</button>
-            <button id="m-2nd" onclick="switchModel('2nd')">二代目議事堂</button>
+        <div class="top-center clickable">
+            <button id="lang-Japanese" class="active-btn" onclick="setLang('Japanese')">日本語</button>
+            <button id="lang-English" onclick="setLang('English')">English</button>
+            <button id="lang-Chinese" onclick="setLang('Chinese')">中文</button>
+            <button id="lang-Korean" onclick="setLang('Korean')">한국어</button>
         </div>
+
+        <div class="left-menu menu clickable">
+            <div class="label">建物を固定する場所</div>
+            <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">① 現在地の北へ15m</button>
+            <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">② タスホテル</button>
+            <button id="btn-office" class="loc-btn" onclick="setAnchorLocation('office')">③ 旧西置賜郡役所</button>
+
+            <div class="label" style="margin-top:10px;">表示モデル / 音声解説</div>
+            <button id="m-all" onclick="switchModel('all')" style="width:100%;">全体(all)</button>
+            
+            <div class="model-row">
+                <button id="m-kozakura" onclick="switchModel('kozakura')">旧西置賜郡役所</button>
+                <button class="audio-btn" onclick="playAudio('kozakura')">説明</button>
+            </div>
+            <div class="model-row">
+                <button id="m-1st" onclick="switchModel('1st')">初代議事堂</button>
+                <button class="audio-btn" onclick="playAudio('1st')">説明</button>
+            </div>
+            <div class="model-row">
+                <button id="m-2nd" onclick="switchModel('2nd')">2代目議事堂</button>
+                <button class="audio-btn" onclick="playAudio('2nd')">説明</button>
+            </div>
+            <button onclick="stopAllAudio()" style="background:#607d8b; color:white; margin-top:4px;">音声停止 ⏹</button>
+        </div>
+
         <div class="right-menu menu clickable">
-            <div class="label">調整</div>
-            <button style="background:#9c27b0; color:white; width:100%;" onclick="adjustRotation(30)">回転 ↻</button>
-            <div style="display:flex; gap:4px; width:100%;"><button style="flex:1" onclick="adjustHeight(1)">上昇</button><button style="flex:1" onclick="adjustHeight(-1)">下降</button></div>
-            <div style="display:flex; gap:4px; width:100%;"><button style="flex:1" onclick="adjustScale(1.2)">拡大</button><button style="flex:1" onclick="adjustScale(0.8)">縮小</button></div>
+            <div class="label">建物を回転</div>
+            <div style="display:flex; gap:4px; width:100%;">
+                <button class="rotate-btn" onclick="adjustRotation(-30)">左回</button>
+                <button class="rotate-btn" onclick="adjustRotation(30)">右回</button>
+            </div>
+            <div class="label" style="margin-top:10px;">高度 / サイズ</div>
+            <div style="display:flex; gap:4px; width:100%;">
+                <button style="flex:1" onclick="adjustHeight(1)">上昇</button><button style="flex:1" onclick="adjustHeight(-1)">下降</button>
+            </div>
+            <div style="display:flex; gap:4px; width:100%;">
+                <button style="flex:1" onclick="adjustScale(1.2)">拡大</button><button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
+            </div>
+            <button onclick="currentScale=1.0; updateTransform();" style="width:100%;">1倍(等身大)</button>
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
         </div>
         <div id="status-bar">GPSを取得中...</div>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true; antialias: true;">
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true;">
         <a-entity id="gps-anchor">
             <a-entity id="content-root" scale="0.5 0.5 0.5" position="0 0 0">
                 <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
             </a-entity>
         </a-entity>
-        <a-camera gps-camera="gpsMinDistance: 0.01; positionMinAccuracy: 1000;" rotation-reader></a-camera>
+
+        <a-camera id="camera" gps-camera="gpsMinDistance: 0; positionMinAccuracy: 1000;" rotation-reader look-controls="enabled: false">
+            <a-entity id="info-panel-root" position="0 -1.1 -3.5" visible="false">
+                <a-plane id="info-panel" width="3" height="1.6" material="shader: flat; transparent: true; opacity: 0.8; color: #10263b;" scrolling-info-panel></a-plane>
+            </a-entity>
+        </a-camera>
     </a-scene>
 
     <script>
         const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
-        const locations = { office: { lat: 38.10134, lon: 140.04299 } };
-        let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5, anchorPlaced = false;
+        const audioFiles = { kozakura: "Kozakura_", "1st": "1st_NisiokitamaGunkai_", "2nd": "2nd_NishiokitamaGUnkai_" };
+        const locations = { tas: { lat: 38.1068, lon: 140.04 }, office: { lat: 38.10134, lon: 140.04299 } };
 
-        const gpsAnchor = document.getElementById("gps-anchor");
-        const contentRoot = document.getElementById("content-root");
-        const model = document.getElementById("main-model");
-        const statusBar = document.getElementById("status-bar");
+        let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5, currentAudio = null, currentLang = "Japanese";
+        const gpsAnchor = document.getElementById("gps-anchor"), contentRoot = document.getElementById("content-root"), model = document.getElementById("main-model"), infoPanelRoot = document.getElementById("info-panel-root"), statusBar = document.getElementById("status-bar");
 
-        function switchModel(k) {
-            model.setAttribute("gltf-model", appData[k]);
-            statusBar.innerText = "モデル読込中...";
-            document.querySelectorAll(".left-menu button[id^='m-']").forEach(b => b.classList.toggle("active-btn", b.id === "m-"+k));
+        AFRAME.registerComponent("scrolling-info-panel", {
+            init: function () {
+                this.canvas = document.createElement("canvas"); this.canvas.width = 1024; this.canvas.height = 512;
+                this.ctx = this.canvas.getContext("2d"); this.texture = new THREE.CanvasTexture(this.canvas);
+                this.scrollY = 550; this.scrollSpeed = 45; this.lines = []; this.el.setAttribute("material", "src", this.canvas);
+            },
+            updateText: function (text) {
+                this.ctx.font = "bold 32px sans-serif"; this.lines = text.split("\n"); this.scrollY = 520;
+            },
+            tick: function (t, dt) {
+                if (!infoPanelRoot.getAttribute("visible")) return;
+                this.scrollY -= this.scrollSpeed * (dt / 1000);
+                this.ctx.fillStyle = "#10263b"; this.ctx.fillRect(0, 0, 1024, 512);
+                this.ctx.fillStyle = "white"; this.ctx.textAlign = "center";
+                this.lines.forEach((l, i) => this.ctx.fillText(l, 512, this.scrollY + i * 45));
+                this.texture.needsUpdate = true;
+            }
+        });
+
+        function setLang(l) { currentLang = l; document.querySelectorAll(".top-center button").forEach(b => b.classList.toggle("active-btn", b.id.includes(l))); }
+        function switchModel(k) { model.setAttribute("gltf-model", appData[k]); document.querySelectorAll(".left-menu button[id^='m-']").forEach(b => b.classList.remove("active-btn")); const btn = document.getElementById("m-"+k); if(btn) btn.classList.add("active-btn"); }
+        function adjustRotation(d) { currentRotation += d; model.setAttribute("rotation", `0 ${currentRotation} 0`); }
+        function adjustScale(f) { currentScale *= f; updateTransform(); }
+        function adjustHeight(d) { currentHeight += d; updateTransform(); }
+        function updateTransform() { contentRoot.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`); contentRoot.setAttribute('position', `0 ${currentHeight} 0`); }
+        
+        function playAudio(key) {
+            stopAllAudio();
+            currentAudio = new Audio(`audio/${audioFiles[key]}${currentLang}.wav`);
+            currentAudio.play().catch(() => statusBar.innerText = "音声エラー");
+            const panel = document.getElementById("info-panel").components["scrolling-info-panel"];
+            panel.updateText("解説を再生中...\n音声に合わせてテキストが流れます。");
+            infoPanelRoot.setAttribute("visible", true);
         }
+        function stopAllAudio() { if (currentAudio) { currentAudio.pause(); currentAudio = null; } infoPanelRoot.setAttribute("visible", false); }
 
         function setAnchorLocation(type) {
             let target = (type === 'current' && userLoc) ? { lat: userLoc.lat + 0.00015, lon: userLoc.lon } : locations[type];
             if (target) {
                 gpsAnchor.setAttribute("gps-entity-place", `latitude: ${target.lat}; longitude: ${target.lon};`);
-                statusBar.innerText = "空間に固定しました！歩いてみてください。";
-                anchorPlaced = true;
-                if (!model.getAttribute("gltf-model")) switchModel('all');
+                statusBar.innerText = "空間に固定しました。歩いて近づけます。";
+                if (!model.getAttribute("gltf-model")) switchModel("all");
             }
         }
 
-        function adjustRotation(d) { currentRotation += d; model.setAttribute("rotation", `0 ${currentRotation} 0`); }
-        function adjustScale(f) { currentScale *= f; contentRoot.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`); }
-        function adjustHeight(d) { currentHeight += d; contentRoot.setAttribute('position', `0 ${currentHeight} 0`); }
-
-        model.addEventListener('model-loaded', () => { statusBar.innerText = "表示準備完了！"; });
-
         navigator.geolocation.watchPosition(pos => {
             userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-            if (!anchorPlaced) statusBar.innerText = "GPS OK。場所を選んでください。";
+            statusBar.innerText = "GPS OK。場所を選択してください。";
         }, null, { enableHighAccuracy: true });
 
         document.addEventListener('click', () => { 
