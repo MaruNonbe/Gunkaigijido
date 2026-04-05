@@ -10,154 +10,6 @@
     <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
 
     <style>
-<<<<<<< HEAD
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: sans-serif;
-            background: #000;
-            touch-action: none;
-        }
-
-        #ui-layer {
-            position: absolute;
-            inset: 0;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        #ui-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 120;
-            pointer-events: auto;
-            background: rgba(33, 33, 33, 0.88);
-            color: white;
-        }
-
-        .clickable {
-            pointer-events: auto;
-        }
-
-        .ui-group {
-            pointer-events: auto;
-        }
-
-        .ui-hidden .ui-group {
-            display: none;
-        }
-
-        button {
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            background: white;
-            font-weight: bold;
-            font-size: 11px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-            color: #333;
-            touch-action: manipulation;
-        }
-
-        .active-btn {
-            background: #4caf50 !important;
-            color: white;
-        }
-
-        .loc-btn {
-            background: #2196f3;
-            color: white;
-            width: 100%;
-        }
-
-        .rotate-btn {
-            background: #9c27b0 !important;
-            color: white;
-            flex: 1;
-        }
-
-        .narration-btn {
-            background: #ff9800;
-            color: white;
-            min-width: 62px;
-        }
-
-        .label {
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #000;
-            margin-bottom: 2px;
-        }
-
-        .menu {
-            position: absolute;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .top-center {
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 5px;
-            width: 95%;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .diag-row {
-            width: 100%;
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .left-menu {
-            top: 60px;
-            left: 10px;
-            width: 210px;
-        }
-
-        .right-menu {
-            top: 60px;
-            right: 10px;
-            align-items: flex-end;
-            width: 130px;
-        }
-
-        .log-btn {
-            width: 100%;
-            color: white;
-        }
-
-        .model-row {
-            display: flex;
-            gap: 4px;
-            width: 100%;
-        }
-
-        .model-row > button:first-child {
-            flex: 1;
-        }
-
-        #status-bar {
-            position: absolute;
-            bottom: 80px;
-            width: 100%;
-            text-align: center;
-            color: #0f0;
-            background: rgba(0, 0, 0, 0.45);
-            font-size: 11px;
-            padding: 4px 0;
-        }
-=======
         body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; touch-action: none; }
         #ui-layer { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
         #ui-toggle { position: absolute; top: 10px; right: 10px; z-index: 120; pointer-events: auto; background: rgba(33, 33, 33, 0.88); color: white; padding: 8px; border-radius: 5px; border: 1px solid #fff; }
@@ -170,13 +22,12 @@
         .narration-btn { background: #ff9800; color: white; min-width: 60px; }
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
         .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
-        .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 90%; justify-content: center; }
-        .left-menu { top: 60px; left: 10px; width: 200px; }
+        .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 95%; justify-content: center; flex-wrap: wrap; }
+        .left-menu { top: 60px; left: 10px; width: 210px; }
         .right-menu { top: 60px; right: 10px; align-items: flex-end; width: 130px; }
         .model-row { display: flex; gap: 4px; width: 100%; }
         .model-row > button:first-child { flex: 1; }
         #status-bar { position: absolute; bottom: 80px; width: 100%; text-align: center; color: #0f0; background: rgba(0, 0, 0, 0.45); font-size: 11px; padding: 4px 0; }
->>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
     </style>
 </head>
 
@@ -189,9 +40,8 @@
             <button id="lang-English" onclick="setLang('English')">English</button>
             <button id="lang-Chinese" onclick="setLang('Chinese')">中文</button>
             <button id="lang-Korean" onclick="setLang('Korean')">한국어</button>
-            <div class="diag-row">
+            <div style="width:100%; display:flex; gap:5px; justify-content:center; margin-top:5px;">
                 <button style="background:#3f51b5; color:white;" onclick="startGpsWatch(true)">GPS再取得</button>
-                <button style="background:#009688; color:white;" onclick="showEnvironmentDiagnostics()">診断</button>
             </div>
         </div>
 
@@ -222,13 +72,6 @@
             <div style="display:flex; gap:4px; width:100%;">
                 <button style="flex:1" onclick="adjustScale(1.2)">拡大</button><button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
             </div>
-<<<<<<< HEAD
-
-            <div class="label" style="margin-top:10px;">診断ログ</div>
-            <button class="log-btn" style="background:#455a64;" onclick="exportLogs()">ログ保存</button>
-            <button class="log-btn" style="background:#795548;" onclick="clearLogs()">ログ消去</button>
-=======
->>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
         </div>
         <div id="status-bar" class="ui-group">GPSを取得中...</div>
@@ -240,12 +83,7 @@
                 <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
             </a-entity>
         </a-entity>
-
-        <a-camera id="camera" gps-new-camera="gpsMinDistance: 0; positionMinAccuracy: 1000;" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" arjs-device-orientation-controls="smoothingFactor: 0.1" camera="near: 0.1; far: 100000">
-            <a-entity id="info-panel-root" position="0 -1.1 -3.5" visible="false">
-                <a-plane id="info-panel" width="3" height="1.6" material="shader: flat; transparent: true; opacity: 0.8; color: #10263b;" scrolling-info-panel></a-plane>
-            </a-entity>
-        </a-camera>
+        <a-camera id="camera" gps-new-camera="gpsMinDistance: 0; positionMinAccuracy: 1000;" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" camera="near: 0.1; far: 100000"></a-camera>
     </a-scene>
 
     <script>
@@ -253,743 +91,62 @@
         const audioFiles = { kozakura: "Kozakura_", "1st": "1st_NisiokitamaGunkai_", "2nd": "2nd_NishiokitamaGUnkai_" };
         const locations = { tas: { lat: 38.1068, lon: 140.04 }, office: { lat: 38.10134, lon: 140.04299 } };
 
-<<<<<<< HEAD
-        const audioFiles = {
-            kozakura: "Kozakura_",
-            "1st": "1st_NisiokitamaGunkai_",
-            "2nd": "2nd_NishiokitamaGUnkai_"
-        };
+        let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.8, currentAudio = null, currentLang = "Japanese", currentModelKey = "all", deviceHeading = null, anchorPlaced = false;
+        const gpsAnchor = document.getElementById("gps-anchor"), contentRoot = document.getElementById("content-root"), model = document.getElementById("main-model"), statusBar = document.getElementById("status-bar");
 
-        const textFiles = {
-            kozakura: "Kozakura_",
-            "1st": "1st_NisiokitamaGunkai_",
-            "2nd": "2nd_NishiokitamaGUnkai_"
-        };
-
-        const locations = {
-            tas: { lat: 38.1068, lon: 140.04 },
-            office: { lat: 38.10134, lon: 140.04299 }
-        };
-
-        const descriptions = {
-            all: {
-                Japanese: [
-                    "文教の森 AR",
-                    "",
-                    "旧西置賜郡役所と会議事堂を含む建物群の全体像を、",
-                    "現在の風景の中に重ねて確認するための表示です。",
-                    "",
-                    "左の説明ボタンで各建物の音声と説明文を表示できます。",
-                    "建物が追従しないよう、GPS空間上に固定して表示しています。"
-                ].join("\n"),
-                English: [
-                    "Bunkyo no Mori AR",
-                    "",
-                    "This display overlays the former Nishiokitama District Office",
-                    "and assembly halls onto the present landscape.",
-                    "",
-                    "Use the narration buttons to play audio and display",
-                    "scrolling text for each building."
-                ].join("\n"),
-                Chinese: [
-                    "文教之森 AR",
-                    "",
-                    "此画面将旧西置赐郡役所与会議事堂建筑群",
-                    "叠加到当前风景中进行展示。",
-                    "",
-                    "可通过说明按钮播放语音并显示各建筑的滚动说明文字。"
-                ].join("\n"),
-                Korean: [
-                    "문교의 숲 AR",
-                    "",
-                    "이 화면은 구 니시오키타마 군역소와 군회의사당 건물군을",
-                    "현재 풍경 위에 겹쳐 보여 줍니다。",
-                    "",
-                    "설명 버튼으로 각 건물의 음성과 스크롤 설명문을 볼 수 있습니다。"
-                ].join("\n")
-            }
-        };
-
-        const textCache = new Map();
-        const LOG_STORAGE_KEY = "gunkaigijido_ar_logs_v1";
-        const MAX_LOG_ENTRIES = 300;
-        let userLoc = null;
-        let currentRotation = 0;
-        let currentHeight = 0;
-        let currentScale = 0.8;
-        let currentAudio = null;
-        let currentLang = "Japanese";
-        let currentModelKey = "all";
-        let currentAnchorType = "current";
-        let currentAnchorTarget = null;
-        let deviceHeading = null;
-        let orientationPermissionTried = false;
-        let uiVisible = true;
-        let anchorPlaced = false;
-        let modelLoaded = false;
-        let modelLoadErrorCount = 0;
-        let lastModelLoadAt = 0;
-        let lastAutoRecoverAt = 0;
-        let lastAnchorSetAt = 0;
-        let autoRecoveryTimer = null;
-        let recoveryAttemptCount = 0;
-        let currentPlacementDistance = 15;
-        const defaultPlacementDistance = 15;
-        const recoveryPlacementDistance = 8;
-        let debugLogs = [];
-        let gpsWatchId = null;
-        let gpsStartupTimer = null;
-
-        const gpsAnchor = document.getElementById("gps-anchor");
-        const contentRoot = document.getElementById("content-root");
-        const model = document.getElementById("main-model");
-        const infoPanelRoot = document.getElementById("info-panel-root");
-        const statusBar = document.getElementById("status-bar");
-        const sceneEl = document.querySelector("a-scene");
-        const cameraEl = document.getElementById("camera");
-        const uiToggleButton = document.getElementById("ui-toggle");
-
-        function loadLogs() {
-            try {
-                const stored = localStorage.getItem(LOG_STORAGE_KEY);
-                debugLogs = stored ? JSON.parse(stored) : [];
-            } catch (error) {
-                debugLogs = [];
-            }
-        }
-
-        function persistLogs() {
-            try {
-                localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(debugLogs));
-            } catch (error) {
-                console.warn("log persistence failed", error);
-            }
-        }
-
-        function snapshotState() {
-            return {
-                lang: currentLang,
-                model: currentModelKey,
-                rotation: currentRotation,
-                scale: currentScale,
-                height: currentHeight,
-                anchorType: currentAnchorType,
-                placementDistance: currentPlacementDistance,
-                anchorPlaced,
-                modelLoaded,
-                modelLoadErrorCount,
-                heading: deviceHeading,
-                userLoc,
-                anchorTarget: currentAnchorTarget
-            };
-        }
-
-        function logEvent(type, message, extra = {}) {
-            const entry = {
-                ts: new Date().toISOString(),
-                type,
-                message,
-                extra,
-                state: snapshotState()
-            };
-            debugLogs.push(entry);
-            if (debugLogs.length > MAX_LOG_ENTRIES) {
-                debugLogs = debugLogs.slice(debugLogs.length - MAX_LOG_ENTRIES);
-            }
-            persistLogs();
-            console.log("[AR-LOG]", entry);
-        }
-
-        function escapeCanvasText(text) {
-            return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-        }
-=======
-        let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5, currentAudio = null, currentLang = "Japanese", currentModelKey = "all", deviceHeading = null;
-        const gpsAnchor = document.getElementById("gps-anchor"), contentRoot = document.getElementById("content-root"), model = document.getElementById("main-model"), infoPanelRoot = document.getElementById("info-panel-root"), statusBar = document.getElementById("status-bar");
->>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
-
-        function setStatus(text) {
-            statusBar.innerText = text;
-            logEvent("status", text);
-        }
-
-        async function showEnvironmentDiagnostics() {
-            const diagnostics = {
-                secureContext: window.isSecureContext,
-                protocol: window.location.protocol,
-                host: window.location.host || "(file)",
-                geolocationSupported: !!navigator.geolocation,
-                userAgent: navigator.userAgent
-            };
-
-            if (navigator.permissions && navigator.permissions.query) {
-                try {
-                    const result = await navigator.permissions.query({ name: "geolocation" });
-                    diagnostics.geolocationPermission = result.state;
-                } catch (error) {
-                    diagnostics.geolocationPermission = "unknown";
-                }
-            }
-
-            const lines = [
-                `secure=${diagnostics.secureContext}`,
-                `protocol=${diagnostics.protocol}`,
-                `host=${diagnostics.host}`,
-                `geo=${diagnostics.geolocationSupported}`,
-                `perm=${diagnostics.geolocationPermission || "unknown"}`
-            ];
-
-            const message = `診断: ${lines.join(" / ")}`;
-            setStatus(message);
-            logEvent("diagnostics", message, diagnostics);
-        }
-
-        function explainGpsBlockedState() {
-            if (!window.isSecureContext) {
-                setStatus("GPS開始不可: HTTPS または localhost で開いてください。file:// では取得できないことがあります。");
-                logEvent("gps-blocked", "secure context ではありません");
-                return true;
-            }
-            if (!navigator.geolocation) {
-                setStatus("このブラウザは位置情報APIに対応していません。");
-                logEvent("gps-blocked", "geolocation unsupported");
-                return true;
-            }
-            return false;
-        }
-
-        function startGpsWatch(forceRestart = false) {
-            if (explainGpsBlockedState()) {
-                return;
-            }
-
-            if (forceRestart && gpsWatchId !== null) {
-                navigator.geolocation.clearWatch(gpsWatchId);
-                gpsWatchId = null;
-            }
-
-            if (gpsWatchId !== null) {
-                setStatus("GPS監視はすでに開始済みです。");
-                return;
-            }
-
-            setStatus("GPS取得を開始しました。権限を許可してください。");
-            logEvent("gps-start", "GPS watchPosition を開始しました", { forceRestart });
-
-            if (gpsStartupTimer) {
-                clearTimeout(gpsStartupTimer);
-            }
-
-            gpsStartupTimer = window.setTimeout(() => {
-                if (!userLoc) {
-                    setStatus("GPS応答待ちです。位置情報の許可、HTTPS、屋外での受信状態を確認してください。");
-                    logEvent("gps-wait-timeout", "GPS初期応答が遅延しています");
-                }
-            }, 8000);
-
-            gpsWatchId = navigator.geolocation.watchPosition(
-                pos => {
-                    userLoc = {
-                        lat: pos.coords.latitude,
-                        lon: pos.coords.longitude,
-                        accuracy: pos.coords.accuracy
-                    };
-
-                    if (gpsStartupTimer) {
-                        clearTimeout(gpsStartupTimer);
-                        gpsStartupTimer = null;
-                    }
-
-                    if (statusBar.innerText === "GPSを取得中..." || statusBar.innerText.includes("GPS取得を開始しました")) {
-                        setStatus("GPS OK。固定場所を選んでください。");
-                    }
-
-                    if (!anchorPlaced && userLoc.accuracy <= 30) {
-                        setAnchorLocation("current");
-                    } else if (anchorPlaced && currentAnchorType === "current" && userLoc.accuracy <= 25) {
-                        reapplyCurrentAnchor("GPS精度改善により再固定しました");
-                    }
-
-                    logEvent("gps-update", "GPS位置更新", { accuracy: userLoc.accuracy, lat: userLoc.lat, lon: userLoc.lon });
-                },
-                err => {
-                    const messageMap = {
-                        1: "位置情報の使用が拒否されました。ブラウザ設定で許可してください。",
-                        2: "位置情報を取得できません。屋外で再試行してください。",
-                        3: "位置情報の取得がタイムアウトしました。GPS再取得を押してください。"
-                    };
-                    setStatus(`GPS取得に失敗しました: ${messageMap[err.code] || err.message}`);
-                    logEvent("gps-error", "GPS取得に失敗しました", { code: err.code, message: err.message });
-                },
-                {
-                    enableHighAccuracy: true,
-                    maximumAge: 0,
-                    timeout: 15000
-                }
-            );
-        }
-
-        function exportLogs() {
-            const payload = {
-                exportedAt: new Date().toISOString(),
-                userAgent: navigator.userAgent,
-                logs: debugLogs
-            };
-            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `gunkaigijido-ar-log-${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-            logEvent("log-export", "ログを書き出しました");
-        }
-
-        function clearLogs() {
-            debugLogs = [];
-            persistLogs();
-            logEvent("log-clear", "ログを初期化しました");
-        }
-
-        AFRAME.registerComponent("scrolling-info-panel", {
-            init: function () {
-                this.canvas = document.createElement("canvas"); this.canvas.width = 1024; this.canvas.height = 512;
-                this.ctx = this.canvas.getContext("2d"); this.texture = new THREE.CanvasTexture(this.canvas);
-                this.scrollY = 550; this.scrollSpeed = 45; this.lines = []; this.el.setAttribute("material", "src", this.canvas);
-            },
-            updateText: function (text) {
-                this.ctx.font = "bold 32px sans-serif"; this.lines = text.split("\n"); this.scrollY = 520;
-            },
-            tick: function (t, dt) {
-                if (!infoPanelRoot.getAttribute("visible")) return;
-                this.scrollY -= this.scrollSpeed * (dt / 1000);
-                this.ctx.fillStyle = "#10263b"; this.ctx.fillRect(0, 0, 1024, 512);
-                this.ctx.fillStyle = "white"; this.ctx.textAlign = "center";
-                this.lines.forEach((l, i) => this.ctx.fillText(l, 512, this.scrollY + i * 45));
-                this.texture.needsUpdate = true;
-            }
-        });
-
-<<<<<<< HEAD
-        function getInfoPanelComponent() {
-            const panel = document.getElementById("info-panel");
-            return panel && panel.components ? panel.components["scrolling-info-panel"] : null;
-        }
-
-        function getFallbackDescription(key, lang) {
-            const group = descriptions[key] || descriptions.all;
-            return group[lang] || group.Japanese || "";
-        }
-
-        async function loadNarrationText(key, lang) {
-            if (!textFiles[key]) {
-                return getFallbackDescription(key, lang);
-            }
-
-            const cacheKey = `${key}-${lang}`;
-            if (textCache.has(cacheKey)) {
-                return textCache.get(cacheKey);
-            }
-
-            const path = `audio/${textFiles[key]}${lang}.txt`;
-            try {
-                const response = await fetch(path, { cache: "no-store" });
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                const text = (await response.text()).trim();
-                textCache.set(cacheKey, text);
-                return text;
-            } catch (error) {
-                const fallback = getFallbackDescription(key, lang);
-                textCache.set(cacheKey, fallback);
-                return fallback;
-            }
-        }
-
-        async function showNarrationText(key) {
-            const panelComp = getInfoPanelComponent();
-            if (!panelComp) {
-                return;
-            }
-            const text = await loadNarrationText(key, currentLang);
-            panelComp.play(text);
-        }
-
-        function setLang(lang) {
-            currentLang = lang;
-            document.querySelectorAll(".top-center button").forEach(button => button.classList.remove("active-btn"));
-            document.getElementById("lang-" + lang).classList.add("active-btn");
-            logEvent("lang-change", `言語を切り替えました: ${lang}`);
-            if (currentModelKey !== "all") {
-                showNarrationText(currentModelKey);
-            }
-        }
-
-        function applyModelState() {
-            model.setAttribute("rotation", `0 ${currentRotation} 0`);
-            contentRoot.setAttribute("position", `0 ${currentHeight} 0`);
-            contentRoot.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`);
-        }
-
-        function switchModel(key, forceReload = false) {
-            currentModelKey = key;
-            const nextModel = appData[key];
-            const currentAttr = model.getAttribute("gltf-model");
-            logEvent("model-switch", `モデル切替: ${key}`, { forceReload, nextModel });
-
-            if (forceReload) {
-                model.removeAttribute("gltf-model");
-            }
-            if (forceReload || currentAttr !== nextModel) {
-                modelLoaded = false;
-                model.setAttribute("gltf-model", nextModel);
-                lastModelLoadAt = Date.now();
-            }
-
-            document.querySelectorAll(".left-menu button[id^='m-']").forEach(button => button.classList.remove("active-btn"));
-            const btn = document.getElementById("m-" + key);
-            if (btn) {
-                btn.classList.add("active-btn");
-            }
-            applyModelState();
-
-            if (key === "all") {
-                showNarrationText("all");
-            }
-        }
-
-        function adjustRotation(deg) {
-            currentRotation += deg;
-            model.setAttribute("rotation", `0 ${currentRotation} 0`);
-        }
-
-        function aimModelTowardHeading() {
-            if (typeof deviceHeading !== "number") {
-                return;
-            }
-            currentRotation = ((deviceHeading + 180) % 360 + 360) % 360;
-            model.setAttribute("rotation", `0 ${currentRotation} 0`);
-        }
-
-        function adjustScale(factor) {
-            currentScale *= factor;
-            contentRoot.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`);
-        }
-
-        function adjustHeight(delta) {
-            currentHeight += delta;
-            contentRoot.setAttribute("position", `0 ${currentHeight} 0`);
-        }
-
-        function stopAllAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            }
-        }
-
-        async function playNarrationAndShow(key) {
-            currentModelKey = key;
-            switchModel(key);
-            stopAllAudio();
-            logEvent("narration", `説明を開始: ${key}`, { lang: currentLang });
-
-            const fileName = `audio/${audioFiles[key]}${currentLang}.wav`;
-            currentAudio = new Audio(fileName);
-            currentAudio.play().catch(() => {
-                setStatus("音声の再生に失敗しました。説明文のみ表示します。");
-            });
-
-            await showNarrationText(key);
-        }
-
-        function toggleUi() {
-            uiVisible = !uiVisible;
-            document.body.classList.toggle("ui-hidden", !uiVisible);
-            uiToggleButton.textContent = uiVisible ? "UI OFF" : "UI ON";
-            logEvent("ui-toggle", `UI表示切替: ${uiVisible ? "show" : "hide"}`);
-        }
-
-        function degreesToRadians(deg) {
-            return deg * Math.PI / 180;
-        }
-
-        function radiansToDegrees(rad) {
-            return rad * 180 / Math.PI;
-        }
-
-        function destinationPoint(lat, lon, bearingDeg, distanceMeters) {
-            const radius = 6378137;
-            const bearing = degreesToRadians(bearingDeg);
-            const lat1 = degreesToRadians(lat);
-            const lon1 = degreesToRadians(lon);
-            const angularDistance = distanceMeters / radius;
-
-            const lat2 = Math.asin(
-                Math.sin(lat1) * Math.cos(angularDistance) +
-                Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing)
-            );
-
-            const lon2 = lon1 + Math.atan2(
-                Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(lat1),
-                Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2)
-            );
-
-            return {
-                lat: radiansToDegrees(lat2),
-                lon: radiansToDegrees(lon2)
-            };
-        }
-
-        function requestOrientationPermissionIfNeeded() {
-            if (orientationPermissionTried) {
-                return;
-            }
-            orientationPermissionTried = true;
-
-            const fn = DeviceOrientationEvent && DeviceOrientationEvent.requestPermission;
-            if (typeof fn === "function") {
-                DeviceOrientationEvent.requestPermission()
-                    .then(state => {
-                        if (state === "granted") {
-                            setStatus("方位センサーの使用を許可しました。GPS固定を開始します。");
-                        } else {
-                            setStatus("方位センサー未許可のため、現在地配置は北方向基準になります。");
-                        }
-                    })
-                    .catch(() => {
-                        setStatus("方位センサー許可に失敗しました。GPS固定は継続します。");
-                    });
-            }
-        }
-
-        function updateHeading(event) {
-            if (typeof event.webkitCompassHeading === "number") {
-                deviceHeading = event.webkitCompassHeading;
-                return;
-            }
-            if (event.absolute === true && typeof event.alpha === "number") {
-                deviceHeading = (360 - event.alpha + 360) % 360;
-            }
-        }
-
-        window.addEventListener("deviceorientationabsolute", updateHeading, true);
-        window.addEventListener("deviceorientation", updateHeading, true);
-
-        function resolveAnchorTarget(type) {
-            if (type === "current") {
-                if (!userLoc) {
-                    return null;
-                }
-                const bearing = typeof deviceHeading === "number" ? deviceHeading : 0;
-                return destinationPoint(userLoc.lat, userLoc.lon, bearing, currentPlacementDistance);
-            }
-            return locations[type] || null;
-        }
-
-        function placeAnchor(target, message) {
-            if (!target) {
-                logEvent("anchor-skip", "アンカー設定をスキップしました", { reason: "target-null" });
-                return;
-            }
-            currentAnchorTarget = target;
-            gpsAnchor.removeAttribute("gps-new-entity-place");
-            gpsAnchor.setAttribute("gps-new-entity-place", {
-                latitude: target.lat,
-                longitude: target.lon
-            });
-            applyModelState();
-            anchorPlaced = true;
-            lastAnchorSetAt = Date.now();
-            logEvent("anchor-place", "アンカーを配置しました", { target, message });
-            if (message) {
-                setStatus(message);
-            }
-        }
-
-        function reapplyCurrentAnchor(reason = "") {
-            const target = resolveAnchorTarget(currentAnchorType);
-            if (!target) {
-                logEvent("anchor-reapply-failed", "アンカー再適用に失敗しました", { reason });
-                return false;
-            }
-            const message = reason ? `表示を自動復旧しました: ${reason}` : "建物を再固定しました。";
-            logEvent("anchor-reapply", "アンカーを再適用します", { reason, target });
-            placeAnchor(target, message);
-            return true;
-        }
-
-        function setAnchorLocation(type) {
-            requestOrientationPermissionIfNeeded();
-            currentAnchorType = type;
-            currentPlacementDistance = defaultPlacementDistance;
-            recoveryAttemptCount = 0;
-            const target = resolveAnchorTarget(type);
-
-            if (!target) {
-                setStatus("現在地がまだ取得できていません。GPS取得を待っています。");
-                logEvent("anchor-wait", "GPS待機中のためアンカー未設定", { type });
-                return;
-            }
-
-            document.querySelectorAll(".loc-btn").forEach(button => button.classList.remove("active-btn"));
-            const locButton = document.getElementById("btn-" + type);
-            if (locButton) {
-                locButton.classList.add("active-btn");
-            }
-
-            if (!model.getAttribute("gltf-model")) {
-                switchModel("all");
-            }
-
-            if (type === "current") {
-                aimModelTowardHeading();
-                if (typeof deviceHeading === "number") {
-                    placeAnchor(target, `現在地の前方${currentPlacementDistance}mに固定しました。建物はカメラに追従しません。`);
-                } else {
-                    placeAnchor(target, `方位未取得のため、現在地の北側${currentPlacementDistance}mに固定しました。建物はカメラに追従しません。`);
-                }
-            } else {
-                placeAnchor(target, "指定地点に固定しました。建物はカメラに追従しません。");
-            }
-        }
-
-        function modelHasRenderableContent() {
-            return !!(model.getObject3D("mesh") || model.object3D.children.length > 0);
-        }
-
-        function needsRecovery() {
-            const now = Date.now();
-            const hasModelAttr = !!model.getAttribute("gltf-model");
-            const hasAnchor = gpsAnchor.hasAttribute("gps-new-entity-place");
-            const hasRenderable = modelHasRenderableContent();
-            const staleLoad = hasModelAttr && !modelLoaded && now - lastModelLoadAt > 5000;
-            const missingRenderable = hasModelAttr && modelLoaded && !hasRenderable;
-            const staleAnchor = anchorPlaced && now - lastAnchorSetAt > 8000 && !hasAnchor;
-            return staleLoad || missingRenderable || staleAnchor;
-        }
-
-        function autoRecoverDisplay(reason) {
-            const now = Date.now();
-            if (now - lastAutoRecoverAt < 3000) {
-                logEvent("recover-skip", "自動復旧を間引きしました", { reason });
-                return;
-            }
-            lastAutoRecoverAt = now;
-
-            recoveryAttemptCount += 1;
-            if (currentAnchorType === "current" && recoveryAttemptCount >= 2) {
-                currentPlacementDistance = recoveryPlacementDistance;
-                if (currentScale < 1.0) {
-                    currentScale = 1.0;
-                }
-                aimModelTowardHeading();
-            }
-
-            applyModelState();
-            switchModel(currentModelKey || "all", true);
-            logEvent("recover-run", "自動復旧を実行しました", { reason, recoveryAttemptCount });
-            reapplyCurrentAnchor(
-                reason + (currentAnchorType === "current" && currentPlacementDistance !== defaultPlacementDistance
-                    ? " / 近距離再配置"
-                    : "")
-            );
-        }
-
-        function startAutoRecoveryWatchdog() {
-            if (autoRecoveryTimer) {
-                clearInterval(autoRecoveryTimer);
-            }
-            autoRecoveryTimer = setInterval(() => {
-                if (needsRecovery()) {
-                    autoRecoverDisplay("モデルまたはGPS固定を再初期化しました");
-                }
-            }, 2500);
-        }
-
-        model.addEventListener("model-loaded", () => {
-            modelLoaded = true;
-            modelLoadErrorCount = 0;
-            recoveryAttemptCount = 0;
-            lastModelLoadAt = Date.now();
-            applyModelState();
-            logEvent("model-loaded", "モデルの読み込みに成功しました", { model: currentModelKey });
-            if (currentAnchorTarget) {
-                reapplyCurrentAnchor("モデル読み込み完了後に再固定しました");
-            } else {
-                setStatus("モデルを読み込みました。GPS固定を確認しています。");
-            }
-        });
-
-        model.addEventListener("model-error", () => {
-            modelLoaded = false;
-            modelLoadErrorCount += 1;
-            setStatus(`モデル読み込みに失敗しました。自動再試行します (${modelLoadErrorCount})`);
-            logEvent("model-error", "モデル読み込みに失敗しました", { model: currentModelKey, count: modelLoadErrorCount });
-            window.setTimeout(() => autoRecoverDisplay("モデル読み込みエラーから再試行しました"), 1200);
-        });
-
-        sceneEl.addEventListener("loaded", () => {
-            loadLogs();
-            logEvent("scene-loaded", "シーンを初期化しました");
-            switchModel("all", true);
-            showNarrationText("all");
-            aimModelTowardHeading();
-            startAutoRecoveryWatchdog();
-            showEnvironmentDiagnostics();
-            startGpsWatch();
-        });
-
-        cameraEl.addEventListener("gps-camera-update-position", event => {
-            const accuracy = event.detail && event.detail.position ? event.detail.position.accuracy : null;
-            if (typeof accuracy === "number" && accuracy > 50) {
-                setStatus(`GPS精度が低いです (${Math.round(accuracy)}m)。空が見える場所で再確認してください。`);
-            }
-            logEvent("camera-gps-update", "gps-camera-update-position", { accuracy });
-        });
-=======
         function setLang(l) { currentLang = l; document.querySelectorAll(".top-center button").forEach(b => b.classList.toggle("active-btn", b.id.includes(l))); }
-        function switchModel(k) { currentModelKey = k; model.setAttribute("gltf-model", appData[k]); document.querySelectorAll(".left-menu button[id^='m-']").forEach(b => b.classList.toggle("active-btn", b.id === "m-"+k)); }
+        function switchModel(k) { currentModelKey = k; model.setAttribute("gltf-model", appData[k]); document.querySelectorAll(".left-menu button[id^='m-']").forEach(b => b.classList.remove("active-btn")); const btn = document.getElementById("m-"+k); if(btn) btn.classList.add("active-btn"); }
         function adjustRotation(d) { currentRotation += d; model.setAttribute("rotation", `0 ${currentRotation} 0`); }
         function adjustScale(f) { currentScale *= f; contentRoot.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`); }
         function adjustHeight(d) { currentHeight += d; contentRoot.setAttribute("position", `0 ${currentHeight} 0`); }
-        function stopAllAudio() { if (currentAudio) { currentAudio.pause(); currentAudio = null; } infoPanelRoot.setAttribute("visible", false); }
+        function stopAllAudio() { if (currentAudio) { currentAudio.pause(); currentAudio = null; } }
+        function toggleUi() { document.body.classList.toggle("ui-hidden"); }
+
+        function setAnchorLocation(type) {
+            let target = null;
+            if (type === 'current' && userLoc) {
+                const bearing = deviceHeading || 0;
+                target = { lat: userLoc.lat + 0.00015, lon: userLoc.lon };
+            } else if (locations[type]) {
+                target = locations[type];
+            }
+
+            if (target) {
+                gpsAnchor.setAttribute("gps-new-entity-place", { latitude: target.lat, longitude: target.lon });
+                statusBar.innerText = "固定完了。歩くと建物との距離が変わります。";
+                anchorPlaced = true;
+                if (!model.getAttribute("gltf-model")) switchModel("all");
+            }
+        }
 
         async function playNarrationAndShow(key) {
             switchModel(key); stopAllAudio();
             currentAudio = new Audio(`audio/${audioFiles[key]}${currentLang}.wav`);
             currentAudio.play().catch(() => statusBar.innerText = "音声エラー");
-            const panel = document.getElementById("info-panel").components["scrolling-info-panel"];
-            panel.updateText("解説を再生中...\n各言語のテキストを表示します。");
-            infoPanelRoot.setAttribute("visible", true);
         }
 
-        function toggleUi() { document.body.classList.toggle("ui-hidden"); }
-
-        function setAnchorLocation(type) {
-            let target = (type === 'current' && userLoc) ? { lat: userLoc.lat + 0.00015, lon: userLoc.lon } : locations[type];
-            if (target) {
-                gpsAnchor.setAttribute("gps-new-entity-place", { latitude: target.lat, longitude: target.lon });
-                statusBar.innerText = "固定完了。歩くと建物との距離が変わります。";
-                if (!model.getAttribute("gltf-model")) switchModel("all");
-            }
+        function startGpsWatch() {
+            navigator.geolocation.watchPosition(pos => {
+                userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude, accuracy: pos.coords.accuracy };
+                statusBar.innerText = "GPS OK。場所を選択してください。";
+                if (!anchorPlaced && userLoc.accuracy <= 30) setAnchorLocation("current");
+            }, err => {
+                statusBar.innerText = "GPSエラー: " + err.message;
+            }, { enableHighAccuracy: true });
         }
 
         window.addEventListener("deviceorientation", e => { deviceHeading = e.webkitCompassHeading || (360 - e.alpha); });
-        navigator.geolocation.watchPosition(pos => {
-            userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-            if (statusBar.innerText.includes("GPS")) statusBar.innerText = "GPS OK。場所を選択。";
-        }, null, { enableHighAccuracy: true });
+        document.addEventListener('click', () => { 
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission();
+            }
+        }, {once: true});
 
-        document.addEventListener('click', () => { if (typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission(); }, {once: true});
->>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
+        window.onload = startGpsWatch;
     </script>
 </body>
 </html>
+
 
 
 
