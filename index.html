@@ -40,7 +40,7 @@
         }
 
         .ui-group {
-            pointer-events: none;
+            pointer-events: auto;
         }
 
         .ui-hidden .ui-group {
@@ -214,7 +214,7 @@
         arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
     >
         <a-entity id="gps-anchor">
-            <a-entity id="content-root" position="0 0 0" scale="0.5 0.5 0.5">
+            <a-entity id="content-root" position="0 0 0" scale="0.8 0.8 0.8">
                 <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
             </a-entity>
         </a-entity>
@@ -301,9 +301,9 @@
                     "문교의 숲 AR",
                     "",
                     "이 화면은 구 니시오키타마 군역소와 군회의사당 건물군을",
-                    "현재 풍경 위에 겹쳐 보여 줍니다.",
+                    "현재 풍경 위에 겹쳐 보여 줍니다。",
                     "",
-                    "설명 버튼으로 각 건물의 음성과 스크롤 설명문을 볼 수 있습니다."
+                    "설명 버튼으로 각 건물의 음성과 스크롤 설명문을 볼 수 있습니다。"
                 ].join("\n")
             }
         };
@@ -312,14 +312,26 @@
         let userLoc = null;
         let currentRotation = 0;
         let currentHeight = 0;
-        let currentScale = 0.5;
+        let currentScale = 0.8;
         let currentAudio = null;
         let currentLang = "Japanese";
         let currentModelKey = "all";
+        let currentAnchorType = "current";
+        let currentAnchorTarget = null;
         let deviceHeading = null;
         let orientationPermissionTried = false;
         let uiVisible = true;
         let anchorPlaced = false;
+        let modelLoaded = false;
+        let modelLoadErrorCount = 0;
+        let lastModelLoadAt = 0;
+        let lastAutoRecoverAt = 0;
+        let lastAnchorSetAt = 0;
+        let autoRecoveryTimer = null;
+        let recoveryAttemptCount = 0;
+        let currentPlacementDistance = 15;
+        const defaultPlacementDistance = 15;
+        const recoveryPlacementDistance = 8;
 
         const gpsAnchor = document.getElementById("gps-anchor");
         const contentRoot = document.getElementById("content-root");
@@ -332,6 +344,10 @@
 
         function escapeCanvasText(text) {
             return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+        }
+
+        function setStatus(text) {
+            statusBar.innerText = text;
         }
 
         AFRAME.registerComponent("scrolling-info-panel", {
@@ -527,14 +543,33 @@
             }
         }
 
-        function switchModel(key) {
+        function applyModelState() {
+            model.setAttribute("rotation", `0 ${currentRotation} 0`);
+            contentRoot.setAttribute("position", `0 ${currentHeight} 0`);
+            contentRoot.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`);
+        }
+
+        function switchModel(key, forceReload = false) {
             currentModelKey = key;
-            model.setAttribute("gltf-model", appData[key]);
+            const nextModel = appData[key];
+            const currentAttr = model.getAttribute("gltf-model");
+
+            if (forceReload) {
+                model.removeAttribute("gltf-model");
+            }
+            if (forceReload || currentAttr !== nextModel) {
+                modelLoaded = false;
+                model.setAttribute("gltf-model", nextModel);
+                lastModelLoadAt = Date.now();
+            }
+
             document.querySelectorAll(".left-menu button[id^='m-']").forEach(button => button.classList.remove("active-btn"));
             const btn = document.getElementById("m-" + key);
             if (btn) {
                 btn.classList.add("active-btn");
             }
+            applyModelState();
+
             if (key === "all") {
                 showNarrationText("all");
             }
@@ -542,6 +577,14 @@
 
         function adjustRotation(deg) {
             currentRotation += deg;
+            model.setAttribute("rotation", `0 ${currentRotation} 0`);
+        }
+
+        function aimModelTowardHeading() {
+            if (typeof deviceHeading !== "number") {
+                return;
+            }
+            currentRotation = ((deviceHeading + 180) % 360 + 360) % 360;
             model.setAttribute("rotation", `0 ${currentRotation} 0`);
         }
 
@@ -571,7 +614,7 @@
             const fileName = `audio/${audioFiles[key]}${currentLang}.wav`;
             currentAudio = new Audio(fileName);
             currentAudio.play().catch(() => {
-                statusBar.innerText = "音声の再生に失敗しました。";
+                setStatus("音声の再生に失敗しました。説明文のみ表示します。");
             });
 
             await showNarrationText(key);
@@ -625,13 +668,13 @@
                 DeviceOrientationEvent.requestPermission()
                     .then(state => {
                         if (state === "granted") {
-                            statusBar.innerText = "方位センサーの使用を許可しました。";
+                            setStatus("方位センサーの使用を許可しました。GPS固定を開始します。");
                         } else {
-                            statusBar.innerText = "方位センサー未許可のため、現在地配置は北方向基準になります。";
+                            setStatus("方位センサー未許可のため、現在地配置は北方向基準になります。");
                         }
                     })
                     .catch(() => {
-                        statusBar.innerText = "方位センサー許可に失敗しました。";
+                        setStatus("方位センサー許可に失敗しました。GPS固定は継続します。");
                     });
             }
         }
@@ -649,51 +692,128 @@
         window.addEventListener("deviceorientationabsolute", updateHeading, true);
         window.addEventListener("deviceorientation", updateHeading, true);
 
+        function resolveAnchorTarget(type) {
+            if (type === "current") {
+                if (!userLoc) {
+                    return null;
+                }
+                const bearing = typeof deviceHeading === "number" ? deviceHeading : 0;
+                return destinationPoint(userLoc.lat, userLoc.lon, bearing, currentPlacementDistance);
+            }
+            return locations[type] || null;
+        }
+
         function placeAnchor(target, message) {
+            if (!target) {
+                return;
+            }
+            currentAnchorTarget = target;
             gpsAnchor.removeAttribute("gps-new-entity-place");
             gpsAnchor.setAttribute("gps-new-entity-place", {
                 latitude: target.lat,
                 longitude: target.lon
             });
+            applyModelState();
             anchorPlaced = true;
-            statusBar.innerText = message;
+            lastAnchorSetAt = Date.now();
+            if (message) {
+                setStatus(message);
+            }
+        }
+
+        function reapplyCurrentAnchor(reason = "") {
+            const target = resolveAnchorTarget(currentAnchorType);
+            if (!target) {
+                return false;
+            }
+            const message = reason ? `表示を自動復旧しました: ${reason}` : "建物を再固定しました。";
+            placeAnchor(target, message);
+            return true;
         }
 
         function setAnchorLocation(type) {
             requestOrientationPermissionIfNeeded();
-
-            let target = null;
-            if (type === "current") {
-                if (!userLoc) {
-                    statusBar.innerText = "現在地がまだ取得できていません。";
-                    return;
-                }
-                const bearing = typeof deviceHeading === "number" ? deviceHeading : 0;
-                target = destinationPoint(userLoc.lat, userLoc.lon, bearing, 15);
-            } else if (locations[type]) {
-                target = locations[type];
-            }
+            currentAnchorType = type;
+            currentPlacementDistance = defaultPlacementDistance;
+            recoveryAttemptCount = 0;
+            const target = resolveAnchorTarget(type);
 
             if (!target) {
+                setStatus("現在地がまだ取得できていません。GPS取得を待っています。");
                 return;
             }
 
             document.querySelectorAll(".loc-btn").forEach(button => button.classList.remove("active-btn"));
-            document.getElementById("btn-" + type).classList.add("active-btn");
+            const locButton = document.getElementById("btn-" + type);
+            if (locButton) {
+                locButton.classList.add("active-btn");
+            }
 
             if (!model.getAttribute("gltf-model")) {
                 switchModel("all");
             }
 
             if (type === "current") {
+                aimModelTowardHeading();
                 if (typeof deviceHeading === "number") {
-                    placeAnchor(target, "現在地の前方15mに固定しました。建物はカメラに追従しません。");
+                    placeAnchor(target, `現在地の前方${currentPlacementDistance}mに固定しました。建物はカメラに追従しません。`);
                 } else {
-                    placeAnchor(target, "方位未取得のため、現在地の北側15mに固定しました。建物はカメラに追従しません。");
+                    placeAnchor(target, `方位未取得のため、現在地の北側${currentPlacementDistance}mに固定しました。建物はカメラに追従しません。`);
                 }
             } else {
                 placeAnchor(target, "指定地点に固定しました。建物はカメラに追従しません。");
             }
+        }
+
+        function modelHasRenderableContent() {
+            return !!(model.getObject3D("mesh") || model.object3D.children.length > 0);
+        }
+
+        function needsRecovery() {
+            const now = Date.now();
+            const hasModelAttr = !!model.getAttribute("gltf-model");
+            const hasAnchor = gpsAnchor.hasAttribute("gps-new-entity-place");
+            const hasRenderable = modelHasRenderableContent();
+            const staleLoad = hasModelAttr && !modelLoaded && now - lastModelLoadAt > 5000;
+            const missingRenderable = hasModelAttr && modelLoaded && !hasRenderable;
+            const staleAnchor = anchorPlaced && now - lastAnchorSetAt > 8000 && !hasAnchor;
+            return staleLoad || missingRenderable || staleAnchor;
+        }
+
+        function autoRecoverDisplay(reason) {
+            const now = Date.now();
+            if (now - lastAutoRecoverAt < 3000) {
+                return;
+            }
+            lastAutoRecoverAt = now;
+
+            recoveryAttemptCount += 1;
+            if (currentAnchorType === "current" && recoveryAttemptCount >= 2) {
+                currentPlacementDistance = recoveryPlacementDistance;
+                if (currentScale < 1.0) {
+                    currentScale = 1.0;
+                }
+                aimModelTowardHeading();
+            }
+
+            applyModelState();
+            switchModel(currentModelKey || "all", true);
+            reapplyCurrentAnchor(
+                reason + (currentAnchorType === "current" && currentPlacementDistance !== defaultPlacementDistance
+                    ? " / 近距離再配置"
+                    : "")
+            );
+        }
+
+        function startAutoRecoveryWatchdog() {
+            if (autoRecoveryTimer) {
+                clearInterval(autoRecoveryTimer);
+            }
+            autoRecoveryTimer = setInterval(() => {
+                if (needsRecovery()) {
+                    autoRecoverDisplay("モデルまたはGPS固定を再初期化しました");
+                }
+            }, 2500);
         }
 
         navigator.geolocation.watchPosition(
@@ -705,15 +825,17 @@
                 };
 
                 if (statusBar.innerText === "GPSを取得中...") {
-                    statusBar.innerText = "GPS OK。固定場所を選んでください。";
+                    setStatus("GPS OK。固定場所を選んでください。");
                 }
 
                 if (!anchorPlaced && userLoc.accuracy <= 30) {
                     setAnchorLocation("current");
+                } else if (anchorPlaced && currentAnchorType === "current" && userLoc.accuracy <= 25) {
+                    reapplyCurrentAnchor("GPS精度改善により再固定しました");
                 }
             },
             err => {
-                statusBar.innerText = "GPS取得に失敗しました: " + err.message;
+                setStatus("GPS取得に失敗しました: " + err.message);
             },
             {
                 enableHighAccuracy: true,
@@ -722,17 +844,42 @@
             }
         );
 
+        model.addEventListener("model-loaded", () => {
+            modelLoaded = true;
+            modelLoadErrorCount = 0;
+            recoveryAttemptCount = 0;
+            lastModelLoadAt = Date.now();
+            applyModelState();
+            if (currentAnchorTarget) {
+                reapplyCurrentAnchor("モデル読み込み完了後に再固定しました");
+            } else {
+                setStatus("モデルを読み込みました。GPS固定を確認しています。");
+            }
+        });
+
+        model.addEventListener("model-error", () => {
+            modelLoaded = false;
+            modelLoadErrorCount += 1;
+            setStatus(`モデル読み込みに失敗しました。自動再試行します (${modelLoadErrorCount})`);
+            window.setTimeout(() => autoRecoverDisplay("モデル読み込みエラーから再試行しました"), 1200);
+        });
+
         sceneEl.addEventListener("loaded", () => {
-            switchModel("all");
+            switchModel("all", true);
             showNarrationText("all");
+            aimModelTowardHeading();
+            startAutoRecoveryWatchdog();
         });
 
         cameraEl.addEventListener("gps-camera-update-position", event => {
             const accuracy = event.detail && event.detail.position ? event.detail.position.accuracy : null;
             if (typeof accuracy === "number" && accuracy > 50) {
-                statusBar.innerText = `GPS精度が低いです (${Math.round(accuracy)}m)。空が見える場所で再確認してください。`;
+                setStatus(`GPS精度が低いです (${Math.round(accuracy)}m)。空が見える場所で再確認してください。`);
             }
         });
     </script>
 </body>
 </html>
+
+
+
