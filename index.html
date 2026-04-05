@@ -3,26 +3,23 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - ボタン復旧・最終版</title>
+    <title>文教の森 AR - 移動同期・完全固定</title>
     <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; touch-action: none; }
         #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; }
         .clickable { pointer-events: auto; }
-        
         button { 
             padding: 10px; border-radius: 8px; border: none; background: white; 
             font-weight: bold; font-size: 11px; cursor: pointer; 
             box-shadow: 0 2px 5px rgba(0,0,0,0.4); color: #333;
-            touch-action: manipulation; -webkit-user-select: none; user-select: none;
+            touch-action: manipulation;
         }
         .active-btn { background: #4CAF50 !important; color: white; }
-        .audio-btn { background: #FF9800; color: white; border: 1px solid #fff; width: 35px; }
         .loc-btn { background: #2196F3; color: white; width: 100%; }
         .rotate-btn { background: #9C27B0 !important; color: white; flex: 1; }
         .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
-
         .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
         .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 95%; justify-content: center; flex-wrap: wrap; }
         .left-menu { top: 60px; left: 10px; width: 150px; }
@@ -47,11 +44,11 @@
             <button id="btn-kozakura" class="loc-btn" onclick="setAnchorLocation('kozakura')">③ 小桜館</button>
             
             <div class="label" style="margin-top:10px;">表示モデル / 音声解説</div>
-            <div style="display:flex; gap:4px;"><button id="m-all" onclick="switchModel('all')">全体(all)</button></div>
-            <div style="display:flex; gap:4px;"><button id="m-gun" onclick="switchModel('kozakura')">小桜館</button><button class="audio-btn" onclick="playAudio('kozakura')">🔊</button></div>
-            <div style="display:flex; gap:4px;"><button id="m-1st" onclick="switchModel('1st')">初代</button><button class="audio-btn" onclick="playAudio('1st')">🔊</button></div>
-            <div style="display:flex; gap:4px;"><button id="m-2nd" onclick="switchModel('2nd')">二代目</button><button class="audio-btn" onclick="playAudio('2nd')">🔊</button></div>
-            <button onclick="stopAllAudio()" style="background:#607D8B; color:white; margin-top:4px;">音声停止 ⏹</button>
+            <button id="m-all" onclick="switchModel('all')">全体(all)</button>
+            <div style="display:flex; gap:4px;"><button id="m-gun" onclick="switchModel('kozakura')">小桜館</button><button class="audio-btn" style="background:#FF9800; color:white; width:35px;" onclick="playAudio('kozakura')">🔊</button></div>
+            <div style="display:flex; gap:4px;"><button id="m-1st" onclick="switchModel('1st')">初代</button><button class="audio-btn" style="background:#FF9800; color:white; width:35px;" onclick="playAudio('1st')">🔊</button></div>
+            <div style="display:flex; gap:4px;"><button id="m-2nd" onclick="switchModel('2nd')">二代目</button><button class="audio-btn" style="background:#FF9800; color:white; width:35px;" onclick="playAudio('2nd')">🔊</button></div>
+            <button onclick="stopAllAudio()" style="background:#607D8B; color:white; margin-top:4px;">音声停止</button>
         </div>
 
         <div class="right-menu menu clickable">
@@ -69,7 +66,6 @@
                 <button style="flex:1" onclick="adjustScale(1.2)">拡大</button>
                 <button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
             </div>
-            <button onclick="currentScale=1; updateTransform();" style="width:100%;">1倍(等身大)</button>
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
         </div>
         <div id="status-bar">GPSを取得中...</div>
@@ -79,7 +75,7 @@
         <a-entity id="ar-anchor">
             <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
         </a-entity>
-        <a-camera id="camera" gps-camera="minDistance: 10; positionMinAccuracy: 1000;" rotation-reader camera="far: 100000; near: 0.1;"></a-camera>
+        <a-camera id="camera" gps-camera="simulateLatitude: 0; simulateLongitude: 0; minDistance: 1;" rotation-reader camera="far: 100000; near: 0.1;"></a-camera>
     </a-scene>
 
     <script>
@@ -90,12 +86,6 @@
         const anchor = document.getElementById('ar-anchor'), model = document.getElementById('main-model'), statusBar = document.getElementById('status-bar');
         let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5, currentAudio = null, currentLang = 'Japanese';
 
-        window.addEventListener('click', () => {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission().catch(console.error);
-            }
-        }, {once: true});
-
         function setAnchorLocation(type) {
             let target = null;
             if (type === 'current' && userLoc) {
@@ -104,19 +94,17 @@
                 target = locations[type];
             }
             if (target) {
+                // モデルの位置をGPS空間にセット
                 anchor.setAttribute('gps-entity-place', `latitude: ${target.lat}; longitude: ${target.lon};`);
-                statusBar.innerText = "アンカー固定完了。歩いても動きません。";
+                statusBar.innerText = "空間に固定しました。歩いて離れてみてください。";
+                
                 document.querySelectorAll('.loc-btn').forEach(b => b.classList.remove('active-btn'));
                 document.getElementById('btn-' + type).classList.add('active-btn');
                 if (!model.getAttribute('gltf-model')) switchModel('all');
             }
         }
 
-        function adjustRotation(deg) {
-            currentRotation += deg;
-            model.setAttribute('rotation', `0 ${currentRotation} 0`);
-        }
-
+        function adjustRotation(deg) { currentRotation += deg; model.setAttribute('rotation', `0 ${currentRotation} 0`); }
         function switchModel(key) {
             model.setAttribute('gltf-model', appData[key]);
             document.querySelectorAll('.left-menu button:not(.loc-btn):not(.audio-btn)').forEach(b => b.classList.remove('active-btn'));
@@ -134,17 +122,12 @@
             stopAllAudio();
             const fileName = "audio/" + audioFiles[key] + currentLang + ".wav";
             currentAudio = new Audio(fileName);
-            currentAudio.play().catch(e => { statusBar.innerText = "再生エラー"; });
+            currentAudio.play();
         }
 
-        function stopAllAudio() { if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; } }
-
-        function adjustScale(f) { currentScale *= f; updateTransform(); }
-        function adjustHeight(v) { currentHeight += v; updateTransform(); }
-        function updateTransform() {
-            anchor.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-            anchor.setAttribute('position', `0 ${currentHeight} 0`);
-        }
+        function stopAllAudio() { if (currentAudio) { currentAudio.pause(); } }
+        function adjustScale(f) { currentScale *= f; anchor.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`); }
+        function adjustHeight(v) { currentHeight += v; anchor.setAttribute('position', `0 ${currentHeight} 0`); }
 
         navigator.geolocation.watchPosition((pos) => {
             userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
