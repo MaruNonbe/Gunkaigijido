@@ -1,15 +1,16 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - GPS固定版</title>
+    <title>文教の森 AR - 最終完全版</title>
 
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/three.js/build/ar-threex-location-only.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
 
     <style>
+<<<<<<< HEAD
         body {
             margin: 0;
             overflow: hidden;
@@ -148,10 +149,30 @@
             font-size: 11px;
             padding: 4px 0;
         }
+=======
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; touch-action: none; }
+        #ui-layer { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
+        #ui-toggle { position: absolute; top: 10px; right: 10px; z-index: 120; pointer-events: auto; background: rgba(33, 33, 33, 0.88); color: white; padding: 8px; border-radius: 5px; border: 1px solid #fff; }
+        .clickable { pointer-events: auto; }
+        .ui-hidden .ui-group { display: none; }
+        button { padding: 10px; border-radius: 8px; border: none; background: white; font-weight: bold; font-size: 11px; cursor: pointer; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); color: #333; touch-action: manipulation; }
+        .active-btn { background: #4caf50 !important; color: white; }
+        .loc-btn { background: #2196f3; color: white; width: 100%; }
+        .rotate-btn { background: #9c27b0 !important; color: white; flex: 1; }
+        .narration-btn { background: #ff9800; color: white; min-width: 60px; }
+        .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
+        .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
+        .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 90%; justify-content: center; }
+        .left-menu { top: 60px; left: 10px; width: 200px; }
+        .right-menu { top: 60px; right: 10px; align-items: flex-end; width: 130px; }
+        .model-row { display: flex; gap: 4px; width: 100%; }
+        .model-row > button:first-child { flex: 1; }
+        #status-bar { position: absolute; bottom: 80px; width: 100%; text-align: center; color: #0f0; background: rgba(0, 0, 0, 0.45); font-size: 11px; padding: 4px 0; }
+>>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
     </style>
 </head>
 
-<body>
+<body class="ui-visible">
     <button id="ui-toggle" onclick="toggleUi()">UI OFF</button>
 
     <div id="ui-layer">
@@ -168,24 +189,11 @@
             <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">② タスホテル</button>
             <button id="btn-office" class="loc-btn" onclick="setAnchorLocation('office')">③ 旧西置賜郡役所</button>
 
-            <div class="label" style="margin-top:10px;">表示モデル / 音声+説明</div>
+            <div class="label" style="margin-top:10px;">表示モデル / 音声解説</div>
             <button id="m-all" onclick="switchModel('all')">全体(all)</button>
-
-            <div class="model-row">
-                <button id="m-kozakura" onclick="switchModel('kozakura')">旧西置賜郡役所</button>
-                <button class="narration-btn" onclick="playNarrationAndShow('kozakura')">説明</button>
-            </div>
-
-            <div class="model-row">
-                <button id="m-1st" onclick="switchModel('1st')">初代旧西置賜郡会議事堂</button>
-                <button class="narration-btn" onclick="playNarrationAndShow('1st')">説明</button>
-            </div>
-
-            <div class="model-row">
-                <button id="m-2nd" onclick="switchModel('2nd')">2代目旧西置賜郡会議事堂</button>
-                <button class="narration-btn" onclick="playNarrationAndShow('2nd')">説明</button>
-            </div>
-
+            <div class="model-row"><button id="m-kozakura" onclick="switchModel('kozakura')">旧西置賜郡役所</button><button class="narration-btn" onclick="playNarrationAndShow('kozakura')">説明</button></div>
+            <div class="model-row"><button id="m-1st" onclick="switchModel('1st')">初代議事堂</button><button class="narration-btn" onclick="playNarrationAndShow('1st')">説明</button></div>
+            <div class="model-row"><button id="m-2nd" onclick="switchModel('2nd')">2代目議事堂</button><button class="narration-btn" onclick="playNarrationAndShow('2nd')">説明</button></div>
             <button onclick="stopAllAudio()" style="background:#607d8b; color:white; margin-top:4px;">音声停止</button>
         </div>
 
@@ -195,71 +203,45 @@
                 <button class="rotate-btn" onclick="adjustRotation(-30)">左回</button>
                 <button class="rotate-btn" onclick="adjustRotation(30)">右回</button>
             </div>
-
             <div class="label" style="margin-top:10px;">高度 / サイズ</div>
             <div style="display:flex; gap:4px; width:100%;">
-                <button style="flex:1" onclick="adjustHeight(0.5)">上昇</button>
-                <button style="flex:1" onclick="adjustHeight(-0.5)">下降</button>
+                <button style="flex:1" onclick="adjustHeight(0.5)">上昇</button><button style="flex:1" onclick="adjustHeight(-0.5)">下降</button>
             </div>
             <div style="display:flex; gap:4px; width:100%;">
-                <button style="flex:1" onclick="adjustScale(1.2)">拡大</button>
-                <button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
+                <button style="flex:1" onclick="adjustScale(1.2)">拡大</button><button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
             </div>
+<<<<<<< HEAD
 
             <div class="label" style="margin-top:10px;">診断ログ</div>
             <button class="log-btn" style="background:#455a64;" onclick="exportLogs()">ログ保存</button>
             <button class="log-btn" style="background:#795548;" onclick="clearLogs()">ログ消去</button>
+=======
+>>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
         </div>
-
         <div id="status-bar" class="ui-group">GPSを取得中...</div>
     </div>
 
-    <a-scene
-        embedded
-        vr-mode-ui="enabled: false"
-        renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true; precision: high;"
-        arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
-    >
+    <a-scene embedded vr-mode-ui="enabled: false" renderer="logarithmicDepthBuffer: true; precision: high;" arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;">
         <a-entity id="gps-anchor">
             <a-entity id="content-root" position="0 0 0" scale="0.8 0.8 0.8">
                 <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
             </a-entity>
         </a-entity>
 
-        <a-camera
-            id="camera"
-            gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 20; simulateAltitude: 0;"
-            look-controls-enabled="false"
-            arjs-device-orientation-controls="smoothingFactor: 0.1"
-            camera="near: 0.1; far: 100000"
-        >
-            <a-entity id="info-panel-root" position="0 -1.15 -3.8" visible="false">
-                <a-plane
-                    id="info-panel"
-                    width="2.8"
-                    height="1.55"
-                    material="shader: flat; transparent: true; opacity: 0.78; color: #10263b; side: double"
-                    scrolling-info-panel
-                ></a-plane>
-                <a-plane
-                    width="2.84"
-                    height="1.59"
-                    position="0 0 -0.01"
-                    material="shader: flat; transparent: true; opacity: 0.25; color: #cfe8ff; side: double"
-                ></a-plane>
+        <a-camera id="camera" gps-new-camera="gpsMinDistance: 0; positionMinAccuracy: 1000;" look-controls="magicWindowTrackingEnabled: true; touchEnabled: false;" arjs-device-orientation-controls="smoothingFactor: 0.1" camera="near: 0.1; far: 100000">
+            <a-entity id="info-panel-root" position="0 -1.1 -3.5" visible="false">
+                <a-plane id="info-panel" width="3" height="1.6" material="shader: flat; transparent: true; opacity: 0.8; color: #10263b;" scrolling-info-panel></a-plane>
             </a-entity>
         </a-camera>
     </a-scene>
 
     <script>
-        const appData = {
-            all: "all.glb",
-            kozakura: "Gun.glb",
-            "1st": "1st.glb",
-            "2nd": "2nd.glb"
-        };
+        const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
+        const audioFiles = { kozakura: "Kozakura_", "1st": "1st_NisiokitamaGunkai_", "2nd": "2nd_NishiokitamaGUnkai_" };
+        const locations = { tas: { lat: 38.1068, lon: 140.04 }, office: { lat: 38.10134, lon: 140.04299 } };
 
+<<<<<<< HEAD
         const audioFiles = {
             kozakura: "Kozakura_",
             "1st": "1st_NisiokitamaGunkai_",
@@ -407,6 +389,10 @@
         function escapeCanvasText(text) {
             return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
         }
+=======
+        let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5, currentAudio = null, currentLang = "Japanese", currentModelKey = "all", deviceHeading = null;
+        const gpsAnchor = document.getElementById("gps-anchor"), contentRoot = document.getElementById("content-root"), model = document.getElementById("main-model"), infoPanelRoot = document.getElementById("info-panel-root"), statusBar = document.getElementById("status-bar");
+>>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
 
         function setStatus(text) {
             statusBar.innerText = text;
@@ -439,143 +425,24 @@
 
         AFRAME.registerComponent("scrolling-info-panel", {
             init: function () {
-                this.canvas = document.createElement("canvas");
-                this.canvas.width = 1024;
-                this.canvas.height = 640;
-                this.ctx = this.canvas.getContext("2d");
-                this.texture = new THREE.CanvasTexture(this.canvas);
-                this.texture.minFilter = THREE.LinearFilter;
-                this.texture.magFilter = THREE.LinearFilter;
-                this.scrollY = this.canvas.height + 40;
-                this.scrollSpeed = 42;
-                this.lastTime = performance.now();
-                this.padding = 54;
-                this.lineHeight = 38;
-                this.font = "bold 30px sans-serif";
-                this.text = "";
-                this.lines = [];
-                this.textHeight = 0;
-                this.visibleUntil = 0;
-                this.isPlaying = false;
-                this.el.setAttribute("material", "src", this.canvas);
-                this.el.setAttribute("material", "transparent", true);
-                this.draw();
+                this.canvas = document.createElement("canvas"); this.canvas.width = 1024; this.canvas.height = 512;
+                this.ctx = this.canvas.getContext("2d"); this.texture = new THREE.CanvasTexture(this.canvas);
+                this.scrollY = 550; this.scrollSpeed = 45; this.lines = []; this.el.setAttribute("material", "src", this.canvas);
             },
-
-            updateText: function (newText) {
-                this.text = escapeCanvasText(newText);
-                this.lines = this.wrapText(this.text, this.canvas.width - this.padding * 2);
-                this.textHeight = this.lines.length * this.lineHeight;
-                this.scrollY = this.canvas.height + 20;
-                this.isPlaying = false;
-                this.draw();
+            updateText: function (text) {
+                this.ctx.font = "bold 32px sans-serif"; this.lines = text.split("\n"); this.scrollY = 520;
             },
-
-            play: function (newText) {
-                this.updateText(newText);
-                this.isPlaying = true;
-                infoPanelRoot.setAttribute("visible", true);
-                const scrollDurationMs = ((this.canvas.height + this.textHeight + 60) / this.scrollSpeed) * 1000;
-                this.visibleUntil = performance.now() + scrollDurationMs + 3500;
-            },
-
-            hide: function () {
-                this.isPlaying = false;
-                this.visibleUntil = 0;
-                infoPanelRoot.setAttribute("visible", false);
-            },
-
-            wrapText: function (text, maxWidth) {
-                const ctx = this.ctx;
-                ctx.font = this.font;
-                const rawLines = text.split("\n");
-                const output = [];
-
-                rawLines.forEach(line => {
-                    if (line.trim() === "") {
-                        output.push("");
-                        return;
-                    }
-
-                    let buffer = "";
-                    for (const ch of line) {
-                        const test = buffer + ch;
-                        if (ctx.measureText(test).width > maxWidth && buffer !== "") {
-                            output.push(buffer);
-                            buffer = ch;
-                        } else {
-                            buffer = test;
-                        }
-                    }
-                    if (buffer !== "") {
-                        output.push(buffer);
-                    }
-                });
-
-                return output;
-            },
-
-            tick: function (time) {
-                const delta = Math.min((time - this.lastTime) / 1000, 0.05);
-                this.lastTime = time;
-                if (this.isPlaying) {
-                    this.scrollY -= this.scrollSpeed * delta;
-                    if (time >= this.visibleUntil) {
-                        this.hide();
-                        return;
-                    }
-                }
-                this.draw();
-            },
-
-            draw: function () {
-                const ctx = this.ctx;
-                const w = this.canvas.width;
-                const h = this.canvas.height;
-                ctx.clearRect(0, 0, w, h);
-
-                const grad = ctx.createLinearGradient(0, 0, 0, h);
-                grad.addColorStop(0, "rgba(12, 25, 42, 0.88)");
-                grad.addColorStop(1, "rgba(18, 53, 78, 0.72)");
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, w, h);
-
-                ctx.strokeStyle = "rgba(220, 240, 255, 0.60)";
-                ctx.lineWidth = 6;
-                ctx.strokeRect(10, 10, w - 20, h - 20);
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(this.padding, 40, w - this.padding * 2, h - 80);
-                ctx.clip();
-                ctx.font = this.font;
-                ctx.textAlign = "center";
-                ctx.textBaseline = "top";
-
-                let y = this.scrollY;
-                for (const line of this.lines) {
-                    ctx.fillStyle = "rgba(255,255,255,0.96)";
-                    ctx.fillText(line, w / 2, y);
-                    y += this.lineHeight;
-                }
-                ctx.restore();
-
-                const fadeTop = ctx.createLinearGradient(0, 0, 0, 72);
-                fadeTop.addColorStop(0, "rgba(16, 38, 59, 1)");
-                fadeTop.addColorStop(1, "rgba(16, 38, 59, 0)");
-                ctx.fillStyle = fadeTop;
-                ctx.fillRect(0, 0, w, 72);
-
-                const fadeBottom = ctx.createLinearGradient(0, h - 72, 0, h);
-                fadeBottom.addColorStop(0, "rgba(16, 38, 59, 0)");
-                fadeBottom.addColorStop(1, "rgba(16, 38, 59, 1)");
-                ctx.fillStyle = fadeBottom;
-                ctx.fillRect(0, h - 72, w, 72);
-
+            tick: function (t, dt) {
+                if (!infoPanelRoot.getAttribute("visible")) return;
+                this.scrollY -= this.scrollSpeed * (dt / 1000);
+                this.ctx.fillStyle = "#10263b"; this.ctx.fillRect(0, 0, 1024, 512);
+                this.ctx.fillStyle = "white"; this.ctx.textAlign = "center";
+                this.lines.forEach((l, i) => this.ctx.fillText(l, 512, this.scrollY + i * 45));
                 this.texture.needsUpdate = true;
             }
         });
 
+<<<<<<< HEAD
         function getInfoPanelComponent() {
             const panel = document.getElementById("info-panel");
             return panel && panel.components ? panel.components["scrolling-info-panel"] : null;
@@ -982,6 +849,42 @@
             }
             logEvent("camera-gps-update", "gps-camera-update-position", { accuracy });
         });
+=======
+        function setLang(l) { currentLang = l; document.querySelectorAll(".top-center button").forEach(b => b.classList.toggle("active-btn", b.id.includes(l))); }
+        function switchModel(k) { currentModelKey = k; model.setAttribute("gltf-model", appData[k]); document.querySelectorAll(".left-menu button[id^='m-']").forEach(b => b.classList.toggle("active-btn", b.id === "m-"+k)); }
+        function adjustRotation(d) { currentRotation += d; model.setAttribute("rotation", `0 ${currentRotation} 0`); }
+        function adjustScale(f) { currentScale *= f; contentRoot.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`); }
+        function adjustHeight(d) { currentHeight += d; contentRoot.setAttribute("position", `0 ${currentHeight} 0`); }
+        function stopAllAudio() { if (currentAudio) { currentAudio.pause(); currentAudio = null; } infoPanelRoot.setAttribute("visible", false); }
+
+        async function playNarrationAndShow(key) {
+            switchModel(key); stopAllAudio();
+            currentAudio = new Audio(`audio/${audioFiles[key]}${currentLang}.wav`);
+            currentAudio.play().catch(() => statusBar.innerText = "音声エラー");
+            const panel = document.getElementById("info-panel").components["scrolling-info-panel"];
+            panel.updateText("解説を再生中...\n各言語のテキストを表示します。");
+            infoPanelRoot.setAttribute("visible", true);
+        }
+
+        function toggleUi() { document.body.classList.toggle("ui-hidden"); }
+
+        function setAnchorLocation(type) {
+            let target = (type === 'current' && userLoc) ? { lat: userLoc.lat + 0.00015, lon: userLoc.lon } : locations[type];
+            if (target) {
+                gpsAnchor.setAttribute("gps-new-entity-place", { latitude: target.lat, longitude: target.lon });
+                statusBar.innerText = "固定完了。歩くと建物との距離が変わります。";
+                if (!model.getAttribute("gltf-model")) switchModel("all");
+            }
+        }
+
+        window.addEventListener("deviceorientation", e => { deviceHeading = e.webkitCompassHeading || (360 - e.alpha); });
+        navigator.geolocation.watchPosition(pos => {
+            userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            if (statusBar.innerText.includes("GPS")) statusBar.innerText = "GPS OK。場所を選択。";
+        }, null, { enableHighAccuracy: true });
+
+        document.addEventListener('click', () => { if (typeof DeviceOrientationEvent.requestPermission === 'function') DeviceOrientationEvent.requestPermission(); }, {once: true});
+>>>>>>> 78a8b705bc1e03ba8c94fee1d9ed17ead99fd6a6
     </script>
 </body>
 </html>
