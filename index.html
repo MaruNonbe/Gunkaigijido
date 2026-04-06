@@ -107,6 +107,14 @@
             flex-wrap: wrap;
         }
 
+        .diag-row {
+            width: 100%;
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
         .left-menu {
             top: 60px;
             left: 10px;
@@ -141,6 +149,9 @@
             <button id="lang-English" onclick="setLang('English')">English</button>
             <button id="lang-Chinese" onclick="setLang('Chinese')">中文</button>
             <button id="lang-Korean" onclick="setLang('Korean')">한국어</button>
+            <div class="diag-row">
+                <button style="background:#3f51b5; color:white;" onclick="showCameraDiagnostics()">カメラ診断</button>
+            </div>
         </div>
 
         <div class="left-menu menu clickable ui-group">
@@ -193,7 +204,7 @@
         embedded
         vr-mode-ui="enabled: false"
         renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true; precision: high;"
-        arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+        arjs="sourceType: webcam; facingMode: environment; videoTexture: true; debugUIEnabled: false;"
     >
         <a-entity id="gps-anchor">
             <a-entity id="content-root" position="0 0 0" scale="0.5 0.5 0.5">
@@ -484,6 +495,50 @@
 
         function updateStatus(message) {
             statusBar.innerText = message;
+        }
+
+        async function showCameraDiagnostics() {
+            const diagnostics = {
+                secureContext: window.isSecureContext,
+                protocol: window.location.protocol,
+                host: window.location.host || "(file)",
+                mediaDevices: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                userAgent: navigator.userAgent
+            };
+
+            if (navigator.permissions && navigator.permissions.query) {
+                try {
+                    const result = await navigator.permissions.query({ name: "camera" });
+                    diagnostics.cameraPermission = result.state;
+                } catch (error) {
+                    diagnostics.cameraPermission = "unknown";
+                }
+            }
+
+            const parts = [
+                `secure=${diagnostics.secureContext}`,
+                `protocol=${diagnostics.protocol}`,
+                `host=${diagnostics.host}`,
+                `media=${diagnostics.mediaDevices}`,
+                `cameraPerm=${diagnostics.cameraPermission || "unknown"}`
+            ];
+
+            updateStatus(`カメラ診断: ${parts.join(" / ")}`);
+            console.log("[camera-diagnostics]", diagnostics);
+        }
+
+        function explainCameraBlockedState() {
+            if (!window.isSecureContext) {
+                updateStatus("カメラ開始不可: HTTPS または localhost で開いてください。file:// や http:// では表示できないことがあります。");
+                return true;
+            }
+
+            if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+                updateStatus("このブラウザはカメラAPIに対応していません。");
+                return true;
+            }
+
+            return false;
         }
 
         function placeLockedAnchor(target, type, message) {
@@ -892,6 +947,8 @@
 
         sceneEl.addEventListener("loaded", () => {
             updateInfoPanelLanguage();
+            showCameraDiagnostics();
+            explainCameraBlockedState();
         });
 
         cameraEl.addEventListener("gps-camera-update-position", event => {
@@ -899,6 +956,15 @@
             if (typeof accuracy === "number" && accuracy > 50) {
                 updateStatus(`GPS精度が低いです (${Math.round(accuracy)}m)。空が見える場所で再確認してください。`);
             }
+        });
+
+        sceneEl.addEventListener("camera-init", () => {
+            updateStatus("カメラ映像を開始しました。");
+        });
+
+        sceneEl.addEventListener("camera-error", event => {
+            const detail = event && event.detail ? JSON.stringify(event.detail) : "unknown";
+            updateStatus(`カメラ開始に失敗しました: ${detail}`);
         });
 
         model.addEventListener("model-loaded", () => {
