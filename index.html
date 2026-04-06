@@ -6,11 +6,12 @@
     <title>旧西置賜郡議事堂 AR Quick Look</title>
     <style>
         :root {
-            --bg: #07111c;
-            --panel: rgba(12, 24, 37, 0.88);
+            --bg-top: #0b1624;
+            --bg-bottom: #02060b;
+            --panel: rgba(12, 24, 37, 0.9);
             --panel-border: rgba(194, 223, 255, 0.22);
             --text: #f3f7fb;
-            --muted: #9fb0c1;
+            --muted: #a7b7c8;
             --accent: #0ea5e9;
             --accent-2: #f97316;
             --accent-3: #10b981;
@@ -25,11 +26,11 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
             color: var(--text);
+            font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
             background:
                 radial-gradient(circle at top, rgba(14, 165, 233, 0.18), transparent 34%),
-                linear-gradient(180deg, #08131f 0%, #02060b 100%);
+                linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
         }
 
         .shell {
@@ -74,52 +75,51 @@
 
         .button-row {
             display: flex;
-            gap: 8px;
             flex-wrap: wrap;
+            gap: 8px;
         }
 
         button,
-        .ar-link {
+        .button-link {
             border: none;
             border-radius: 12px;
             padding: 11px 14px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            color: #fff;
-            background: #243344;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-            text-decoration: none;
+            min-height: 42px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            min-height: 42px;
+            color: #fff;
+            background: #243344;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
         }
 
         button.active {
             background: var(--accent-3);
         }
 
-        button.primary {
+        .primary {
             background: var(--accent);
         }
 
-        button.audio {
+        .audio {
             background: var(--accent-2);
         }
 
-        button.warn {
+        .warn {
             background: var(--danger);
         }
 
-        button.disabled {
+        .disabled {
             background: var(--disabled);
         }
 
         .grid {
             display: grid;
             grid-template-columns: 1.2fr 0.8fr;
-            gap: 0;
             overflow: hidden;
         }
 
@@ -141,15 +141,15 @@
         }
 
         .preview h2 {
-            font-size: clamp(28px, 4vw, 48px);
             margin: 10px 0 8px;
             line-height: 1.08;
+            font-size: clamp(28px, 4vw, 48px);
         }
 
         .preview p {
-            color: var(--muted);
             margin: 0;
             max-width: 46ch;
+            color: var(--muted);
             line-height: 1.7;
         }
 
@@ -161,11 +161,11 @@
         }
 
         .chip {
+            padding: 8px 12px;
             border: 1px solid rgba(159, 176, 193, 0.24);
             border-radius: 999px;
-            padding: 8px 12px;
-            font-size: 12px;
             color: #d8e5f2;
+            font-size: 12px;
         }
 
         .controls {
@@ -181,8 +181,8 @@
 
         .panel h3 {
             margin: 0 0 10px;
-            font-size: 13px;
             color: #b8c7d8;
+            font-size: 13px;
         }
 
         .stack {
@@ -209,7 +209,6 @@
 
         .text-panel {
             margin-top: 14px;
-            padding: 18px;
             min-height: 140px;
             line-height: 1.8;
             white-space: pre-wrap;
@@ -219,12 +218,12 @@
             display: none;
         }
 
-        .hidden-anchor {
-            position: absolute;
-            left: -9999px;
+        .ar-link img {
             width: 1px;
             height: 1px;
-            overflow: hidden;
+            opacity: 0.001;
+            position: absolute;
+            pointer-events: none;
         }
 
         @media (max-width: 860px) {
@@ -242,12 +241,11 @@
                 <p>USDZ / Quick Look 版。iPhone・iPad の Safari で AR 表示します。</p>
             </div>
             <div class="button-row">
-                <button id="lang-Japanese" class="active ui-group" onclick="setLang('Japanese')">日本語</button>
-                <button id="lang-English" class="ui-group" onclick="setLang('English')">English</button>
-                <button id="lang-Chinese" class="ui-group" onclick="setLang('Chinese')">中文</button>
-                <button id="lang-Korean" class="ui-group" onclick="setLang('Korean')">한국어</button>
-                <button id="launch-ar" class="primary ui-group" onclick="launchQuickLook()">ARを見る</button>
-                <button id="ui-toggle" onclick="toggleUi()">UI OFF</button>
+                <button id="lang-Japanese" class="active ui-group" type="button" onclick="setLang('Japanese')">日本語</button>
+                <button id="lang-English" class="ui-group" type="button" onclick="setLang('English')">English</button>
+                <button id="lang-Chinese" class="ui-group" type="button" onclick="setLang('Chinese')">中文</button>
+                <button id="lang-Korean" class="ui-group" type="button" onclick="setLang('Korean')">한국어</button>
+                <button id="ui-toggle" type="button" onclick="toggleUi()">UI OFF</button>
             </div>
         </div>
 
@@ -256,20 +254,21 @@
                 <div>
                     <div class="eyebrow" id="model-label">MODEL</div>
                     <h2 id="hero-title">全体表示</h2>
-                    <p id="hero-description">USDZ を Quick Look で開く構成に変更しています。ブラウザ内描画ではないため、AR 表示は Apple の Quick Look に移ります。</p>
+                    <p id="hero-description">Apple Quick Look で USDZ を開いて AR 表示します。ブラウザ内 3D 表示ではありません。</p>
                     <div class="preview-meta">
                         <div class="chip" id="compatibility-chip">Quick Look Ready</div>
                         <div class="chip" id="anchor-chip">位置固定: Quick Look では未対応</div>
-                        <div class="chip" id="transform-chip">回転・高さ・サイズ: Quick Look側操作</div>
+                        <div class="chip" id="transform-chip">回転・拡大縮小: Quick Look 側で操作</div>
                     </div>
                 </div>
                 <div class="button-row">
-                    <a id="quicklook-link" class="ar-link" rel="ar" href="all.usdz">
-                        <img id="quicklook-preview" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" width="1" height="1">
-                        Quick Look を起動
+                    <a id="launch-ar-link" class="button-link primary ar-link" rel="ar" href="all.usdz">
+                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="">
+                        <span>ARを見る</span>
                     </a>
-                    <button class="audio" onclick="playAudio(currentModelKey)">音声再生</button>
-                    <button onclick="stopAllAudio()">音声停止</button>
+                    <button id="quicklook-link" class="button-link ui-group" type="button" onclick="openQuickLookFile()">Quick Look を起動</button>
+                    <button class="audio" type="button" onclick="playAudio(currentModelKey)">音声再生</button>
+                    <button type="button" onclick="stopAllAudio()">音声停止</button>
                 </div>
             </section>
 
@@ -277,18 +276,18 @@
                 <div class="panel">
                     <h3>表示モデル</h3>
                     <div class="stack">
-                        <button id="m-all" class="active" onclick="switchModel('all')">全体表示</button>
+                        <button id="m-all" class="active" type="button" onclick="switchModel('all')">全体表示</button>
                         <div class="pair">
-                            <button id="m-kozakura" onclick="switchModel('kozakura')">旧西置賜郡役所</button>
-                            <button class="audio" onclick="playAudio('kozakura')">音声</button>
+                            <button id="m-kozakura" type="button" onclick="switchModel('kozakura')">旧西置賜郡役所</button>
+                            <button class="audio" type="button" onclick="playAudio('kozakura')">音声</button>
                         </div>
                         <div class="pair">
-                            <button id="m-1st" onclick="switchModel('1st')">初代議事堂</button>
-                            <button class="audio" onclick="playAudio('1st')">音声</button>
+                            <button id="m-1st" type="button" onclick="switchModel('1st')">初代議事堂</button>
+                            <button class="audio" type="button" onclick="playAudio('1st')">音声</button>
                         </div>
                         <div class="pair">
-                            <button id="m-2nd" onclick="switchModel('2nd')">二代目議事堂</button>
-                            <button class="audio" onclick="playAudio('2nd')">音声</button>
+                            <button id="m-2nd" type="button" onclick="switchModel('2nd')">二代目議事堂</button>
+                            <button class="audio" type="button" onclick="playAudio('2nd')">音声</button>
                         </div>
                     </div>
                 </div>
@@ -296,59 +295,43 @@
                 <div class="panel">
                     <h3>位置ボタン</h3>
                     <div class="stack">
-                        <button id="btn-current" onclick="setAnchorLocation('current')">現在地の前方15m</button>
-                        <button id="btn-tas" onclick="setAnchorLocation('tas')">TAS</button>
-                        <button id="btn-office" onclick="setAnchorLocation('office')">旧役所位置</button>
+                        <button id="btn-current" type="button" onclick="setAnchorLocation('current')">現在地の前方15m</button>
+                        <button id="btn-tas" type="button" onclick="setAnchorLocation('tas')">TAS</button>
+                        <button id="btn-office" type="button" onclick="setAnchorLocation('office')">旧役所位置</button>
                     </div>
                 </div>
 
                 <div class="panel">
                     <h3>変形操作</h3>
                     <div class="stack">
-                        <button class="disabled" onclick="showUnsupported('rotation')">回転</button>
-                        <button class="disabled" onclick="showUnsupported('height')">高さ</button>
-                        <button class="disabled" onclick="showUnsupported('scale')">サイズ</button>
+                        <button class="disabled" type="button" onclick="showUnsupported('rotation')">回転</button>
+                        <button class="disabled" type="button" onclick="showUnsupported('height')">高さ</button>
+                        <button class="disabled" type="button" onclick="showUnsupported('scale')">サイズ</button>
                     </div>
                 </div>
 
                 <div class="panel">
                     <h3>補助</h3>
                     <div class="stack">
-                        <button onclick="showDiagnostics()">診断</button>
-                        <button class="warn" onclick="location.reload()">再読み込み</button>
+                        <button type="button" onclick="showDiagnostics()">診断</button>
+                        <button class="warn" type="button" onclick="location.reload()">再読み込み</button>
                     </div>
                 </div>
             </aside>
         </div>
 
         <div id="text-panel" class="panel text-panel ui-group"></div>
-        <div id="status-bar" class="status ui-group">USDZ ファイルを選び、「ARを見る」で Quick Look を開いてください。</div>
+        <div id="status-bar" class="status ui-group">Safari で「ARを見る」を直接タップすると Quick Look が起動します。</div>
     </div>
 
     <audio id="audio-player" preload="none"></audio>
 
     <script>
         const appData = {
-            all: {
-                label: "全体表示",
-                usdz: "all.usdz",
-                title: "全体表示"
-            },
-            kozakura: {
-                label: "旧西置賜郡役所",
-                usdz: "Gun.usdz",
-                title: "旧西置賜郡役所"
-            },
-            "1st": {
-                label: "初代議事堂",
-                usdz: "1st.usdz",
-                title: "初代議事堂"
-            },
-            "2nd": {
-                label: "二代目議事堂",
-                usdz: "2nd.usdz",
-                title: "二代目議事堂"
-            }
+            all: { label: "全体表示", usdz: "all.usdz", title: "全体表示" },
+            kozakura: { label: "旧西置賜郡役所", usdz: "Gun.usdz", title: "旧西置賜郡役所" },
+            "1st": { label: "初代議事堂", usdz: "1st.usdz", title: "初代議事堂" },
+            "2nd": { label: "二代目議事堂", usdz: "2nd.usdz", title: "二代目議事堂" }
         };
 
         const audioFiles = {
@@ -359,10 +342,10 @@
 
         const descriptions = {
             all: {
-                Japanese: "文教の森 AR\n\nQuick Look 用に構成を変更したため、ブラウザ内で 3D を重ねるのではなく、USDZ を Apple の AR ビューアで表示します。",
-                English: "Bunkyo no Mori AR\n\nThis version uses Apple Quick Look. The USDZ model is opened in the system AR viewer instead of being rendered inside the page.",
-                Chinese: "文教之森 AR\n\n此版本改为使用 Apple Quick Look，以 USDZ 格式在系统 AR 检视器中显示。",
-                Korean: "문교의 숲 AR\n\n이 버전은 Apple Quick Look을 사용하며, 페이지 내부 렌더링 대신 시스템 AR 뷰어에서 USDZ를 엽니다."
+                Japanese: "文教の森 AR\n\nこの版は Apple Quick Look を使います。USDZ モデルはページ内ではなく、システムの AR ビューアで表示されます。",
+                English: "Bunkyo no Mori AR\n\nThis version uses Apple Quick Look. The USDZ model opens in the system AR viewer instead of rendering inside the page.",
+                Chinese: "文教之森 AR\n\n此版本使用 Apple Quick Look。USDZ 模型会在系统 AR 检视器中打开，而不是在页面内渲染。",
+                Korean: "문교의 숲 AR\n\n이 버전은 Apple Quick Look을 사용합니다. USDZ 모델은 페이지 내부가 아니라 시스템 AR 뷰어에서 열립니다."
             },
             kozakura: {
                 Japanese: "旧西置賜郡役所\n\n明治11年建築。現在は小桜館として保存されています。",
@@ -395,7 +378,8 @@
         const heroTitle = document.getElementById("hero-title");
         const heroDescription = document.getElementById("hero-description");
         const modelLabel = document.getElementById("model-label");
-        const quickLookLink = document.getElementById("quicklook-link");
+        const launchArLink = document.getElementById("launch-ar-link");
+        const quickLookButton = document.getElementById("quicklook-link");
         const audioPlayer = document.getElementById("audio-player");
         const compatibilityChip = document.getElementById("compatibility-chip");
         const anchorChip = document.getElementById("anchor-chip");
@@ -410,8 +394,11 @@
             statusBar.textContent = message;
         }
 
-        function isQuickLookCapable() {
-            return /iPhone|iPad|iPod/.test(navigator.userAgent) && /Safari/.test(navigator.userAgent);
+        function isIOSSafari() {
+            const ua = navigator.userAgent;
+            const isIOS = /iPhone|iPad|iPod/.test(ua);
+            const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+            return isIOS && isSafari;
         }
 
         function getCurrentDescription() {
@@ -425,18 +412,18 @@
             heroDescription.textContent = getCurrentDescription();
             modelLabel.textContent = model.label.toUpperCase();
             textPanel.textContent = getCurrentDescription();
-            quickLookLink.href = model.usdz;
-            compatibilityChip.textContent = isQuickLookCapable() ? "Quick Look Ready" : "iOS Safari Required";
-            anchorChip.textContent = "位置指定: " + locations[selectedAnchor] + "（Quick Lookには未連携）";
+            launchArLink.href = model.usdz;
+            compatibilityChip.textContent = isIOSSafari() ? "Quick Look Ready" : "iOS Safari Required";
+            anchorChip.textContent = "位置指定: " + locations[selectedAnchor] + "（Quick Look には未連携）";
             transformChip.textContent = "回転・拡大縮小は Quick Look 側で操作";
         }
 
         function switchModel(key) {
             currentModelKey = key;
-            document.querySelectorAll("button[id^='m-']").forEach(button => button.classList.remove("active"));
-            const activeButton = document.getElementById("m-" + key);
-            if (activeButton) {
-                activeButton.classList.add("active");
+            document.querySelectorAll("button[id^='m-']").forEach((button) => button.classList.remove("active"));
+            const button = document.getElementById("m-" + key);
+            if (button) {
+                button.classList.add("active");
             }
             refreshView();
             setStatus(appData[key].label + " の USDZ を選択しました。");
@@ -445,7 +432,7 @@
 
         function setLang(lang) {
             currentLang = lang;
-            document.querySelectorAll("button[id^='lang-']").forEach(button => button.classList.remove("active"));
+            document.querySelectorAll("button[id^='lang-']").forEach((button) => button.classList.remove("active"));
             document.getElementById("lang-" + lang).classList.add("active");
             refreshView();
             setStatus("表示言語を切り替えました。");
@@ -458,11 +445,9 @@
                 return;
             }
             audioPlayer.src = audioFiles[key] + currentLang + ".wav";
-            audioPlayer.play().then(() => {
-                setStatus("音声を再生しています。");
-            }).catch(() => {
-                setStatus("音声の再生に失敗しました。audio フォルダとファイル名を確認してください。");
-            });
+            audioPlayer.play()
+                .then(() => setStatus("音声を再生しています。"))
+                .catch(() => setStatus("音声の再生に失敗しました。audio フォルダとファイル名を確認してください。"));
         }
         window.playAudio = playAudio;
 
@@ -475,10 +460,10 @@
 
         function setAnchorLocation(type) {
             selectedAnchor = type;
-            document.querySelectorAll("button[id^='btn-']").forEach(button => button.classList.remove("active"));
+            document.querySelectorAll("button[id^='btn-']").forEach((button) => button.classList.remove("active"));
             document.getElementById("btn-" + type).classList.add("active");
             refreshView();
-            setStatus(locations[type] + " を選択しました。Quick Look にはこの位置情報を直接渡せません。");
+            setStatus(locations[type] + " を選択しました。Quick Look には位置情報を直接渡せません。");
         }
         window.setAnchorLocation = setAnchorLocation;
 
@@ -492,20 +477,19 @@
         }
         window.showUnsupported = showUnsupported;
 
-        function launchQuickLook() {
-            if (!isQuickLookCapable()) {
+        function openQuickLookFile() {
+            if (!isIOSSafari()) {
                 setStatus("Quick Look は iPhone / iPad の Safari で利用してください。");
                 return;
             }
-            quickLookLink.click();
-            setStatus(appData[currentModelKey].label + " を Quick Look で開きます。");
+            window.location.href = appData[currentModelKey].usdz;
         }
-        window.launchQuickLook = launchQuickLook;
+        window.openQuickLookFile = openQuickLookFile;
 
         function showDiagnostics() {
             const info = {
                 userAgent: navigator.userAgent,
-                quickLookCapable: isQuickLookCapable(),
+                quickLookCapable: isIOSSafari(),
                 model: currentModelKey,
                 usdz: appData[currentModelKey].usdz,
                 language: currentLang,
@@ -520,6 +504,7 @@
             uiVisible = !uiVisible;
             document.body.classList.toggle("hidden-ui", !uiVisible);
             document.getElementById("ui-toggle").textContent = uiVisible ? "UI OFF" : "UI ON";
+            quickLookButton.style.display = uiVisible ? "inline-flex" : "none";
             setStatus(uiVisible ? "UI を表示しました。" : "UI を非表示にしました。");
         }
         window.toggleUi = toggleUi;
