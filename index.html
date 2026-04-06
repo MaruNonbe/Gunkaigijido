@@ -607,20 +607,18 @@
                     }
                 });
 
-                webcam.addEventListener("webcamstarted", event => {
-                    scene.background = event.detail.texture;
+                webcam.on("webcamstarted", event => {
+                    scene.background = event.texture;
                     setStatus("カメラ映像を開始しました。GPSを待っています...");
                 });
 
-                webcam.addEventListener("webcamerror", event => {
-                    setStatus(`カメラ開始に失敗しました: ${event.detail?.message || "unknown"}`);
+                webcam.on("webcamerror", error => {
+                    setStatus(`カメラ開始に失敗しました: ${error?.message || "unknown"}`);
                 });
-
-                await webcam.start();
 
                 locar = new LocAR.LocationBased(scene, camera);
                 locar.on("gpsupdate", event => {
-                    const coords = event.coords || event.detail?.coords;
+                    const coords = event?.position?.coords;
                     if (!coords) {
                         return;
                     }
@@ -642,16 +640,17 @@
                 });
 
                 deviceControls = new LocAR.DeviceOrientationControls(camera);
-                deviceControls.addEventListener("deviceorientation", event => {
-                    if (typeof event?.detail?.alpha === "number") {
-                        currentHeading = (360 - event.detail.alpha + 360) % 360;
-                    }
-                });
-                deviceControls.addEventListener("deviceorientationgranted", () => {
+                deviceControls.on("deviceorientationgranted", event => {
+                    event.target.connect();
                     setStatus("方位センサーを許可しました。");
                 });
-                deviceControls.addEventListener("deviceorientationerror", event => {
-                    setStatus(`方位センサーに失敗しました: ${event?.detail?.message || "unknown"}`);
+                deviceControls.on("deviceorientationerror", error => {
+                    setStatus(`方位センサーに失敗しました: ${error?.message || "unknown"}`);
+                });
+                deviceControls.on("deviceorientation", event => {
+                    if (typeof event?.alpha === "number") {
+                        currentHeading = (360 - event.alpha + 360) % 360;
+                    }
                 });
 
                 await deviceControls.init();
@@ -666,6 +665,9 @@
 
         function animate() {
             requestAnimationFrame(animate);
+            if (deviceControls) {
+                deviceControls.update();
+            }
             renderer.render(scene, camera);
         }
         animate();
