@@ -2,16 +2,8 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    >
-    <title>文教の森 AR - GPS固定版</title>
-
-    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/three.js/build/ar-threex-location-only.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>文教の森 AR - LocAR版</title>
     <style>
         body {
             margin: 0;
@@ -21,8 +13,14 @@
             touch-action: none;
         }
 
+        #render-root {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
         #ui-layer {
-            position: absolute;
+            position: fixed;
             inset: 0;
             z-index: 100;
             pointer-events: none;
@@ -102,7 +100,7 @@
             transform: translateX(-50%);
             display: flex;
             gap: 5px;
-            width: 95%;
+            width: 96%;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -116,48 +114,82 @@
         }
 
         .left-menu {
-            top: 60px;
+            top: 76px;
             left: 10px;
-            width: 165px;
+            width: 180px;
         }
 
         .right-menu {
-            top: 60px;
+            top: 76px;
             right: 10px;
             align-items: flex-end;
             width: 130px;
         }
 
-        #status-bar {
-            position: absolute;
-            bottom: 80px;
+        .model-row {
+            display: flex;
+            gap: 4px;
             width: 100%;
-            text-align: center;
-            color: #0f0;
-            background: rgba(0, 0, 0, 0.45);
-            font-size: 11px;
-            padding: 4px 0;
         }
 
-        #camera-probe {
+        .model-row > button:first-child {
+            flex: 1;
+        }
+
+        #status-bar {
             position: absolute;
-            left: 10px;
-            bottom: 120px;
-            width: 160px;
-            height: 120px;
-            z-index: 130;
-            border: 2px solid rgba(255, 255, 255, 0.75);
+            bottom: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: 720px;
+            text-align: center;
+            color: #0f0;
+            background: rgba(0, 0, 0, 0.56);
+            font-size: 11px;
+            padding: 6px 10px;
             border-radius: 10px;
-            background: rgba(0, 0, 0, 0.75);
+        }
+
+        #text-panel {
+            position: absolute;
+            left: 50%;
+            bottom: 68px;
+            transform: translateX(-50%);
+            width: min(92vw, 560px);
+            height: 130px;
+            background: rgba(16, 38, 59, 0.82);
+            border: 2px solid rgba(220, 240, 255, 0.55);
+            border-radius: 14px;
+            overflow: hidden;
+            color: white;
             display: none;
-            object-fit: cover;
+            pointer-events: none;
+        }
+
+        #text-panel.show {
+            display: block;
+        }
+
+        #text-scroll {
+            position: absolute;
+            left: 50%;
+            width: calc(100% - 36px);
+            transform: translateX(-50%);
+            text-align: center;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 15px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
         }
     </style>
 </head>
-
 <body>
+    <div id="render-root"></div>
+
     <button id="ui-toggle" onclick="toggleUi()">UI OFF</button>
-    <video id="camera-probe" autoplay playsinline muted></video>
+
     <div id="ui-layer">
         <div class="top-center clickable ui-group">
             <button id="lang-Japanese" class="active-btn" onclick="setLang('Japanese')">日本語</button>
@@ -165,9 +197,8 @@
             <button id="lang-Chinese" onclick="setLang('Chinese')">中文</button>
             <button id="lang-Korean" onclick="setLang('Korean')">한국어</button>
             <div class="diag-row">
-                <button style="background:#e91e63; color:white;" onclick="requestCameraPermission()">カメラ開始</button>
-                <button style="background:#ff5722; color:white;" onclick="startCameraProbe()">直カメラ診断</button>
-                <button style="background:#3f51b5; color:white;" onclick="showCameraDiagnostics()">カメラ診断</button>
+                <button style="background:#e91e63; color:white;" onclick="startAr()">AR開始</button>
+                <button style="background:#3f51b5; color:white;" onclick="showDiagnostics()">診断</button>
             </div>
         </div>
 
@@ -175,21 +206,21 @@
             <div class="label">建物を固定する場所</div>
             <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">① 現在地の15m先</button>
             <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">② タスホテル</button>
-            <button id="btn-kozakura" class="loc-btn" onclick="setAnchorLocation('kozakura')">③ 旧西置賜郡役所</button>
+            <button id="btn-office" class="loc-btn" onclick="setAnchorLocation('office')">③ 旧西置賜郡役所</button>
 
             <div class="label" style="margin-top:10px;">表示モデル / 音声解説</div>
             <button id="m-all" onclick="switchModel('all')">全体(all)</button>
-            <div style="display:flex; gap:4px;">
+            <div class="model-row">
                 <button id="m-kozakura" onclick="switchModel('kozakura')">旧西置賜郡役所</button>
-                <button class="audio-btn" style="background:#ff9800; color:white; width:35px;" onclick="playAudio('kozakura')">🔊</button>
+                <button style="background:#ff9800; color:white;" onclick="playAudio('kozakura')">説明</button>
             </div>
-            <div style="display:flex; gap:4px;">
+            <div class="model-row">
                 <button id="m-1st" onclick="switchModel('1st')">初代</button>
-                <button class="audio-btn" style="background:#ff9800; color:white; width:35px;" onclick="playAudio('1st')">🔊</button>
+                <button style="background:#ff9800; color:white;" onclick="playAudio('1st')">説明</button>
             </div>
-            <div style="display:flex; gap:4px;">
+            <div class="model-row">
                 <button id="m-2nd" onclick="switchModel('2nd')">二代目</button>
-                <button class="audio-btn" style="background:#ff9800; color:white; width:35px;" onclick="playAudio('2nd')">🔊</button>
+                <button style="background:#ff9800; color:white;" onclick="playAudio('2nd')">説明</button>
             </div>
             <button onclick="stopAllAudio()" style="background:#607d8b; color:white; margin-top:4px;">音声停止</button>
         </div>
@@ -214,48 +245,18 @@
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
         </div>
 
-        <div id="status-bar" class="ui-group">GPSを取得中...</div>
+        <div id="text-panel" class="ui-group">
+            <div id="text-scroll"></div>
+        </div>
+        <div id="status-bar" class="ui-group">AR開始を押してください。</div>
     </div>
 
-    <a-scene
-        embedded
-        vr-mode-ui="enabled: false"
-        renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true; precision: high;"
-        arjs="sourceType: webcam; facingMode: environment; videoTexture: true; debugUIEnabled: false;"
-    >
-        <a-entity id="gps-anchor">
-            <a-entity id="content-root" position="0 0 0" scale="0.5 0.5 0.5">
-                <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
+    <script type="module">
+        import * as THREE from "https://esm.sh/three@0.160.0";
+        import { GLTFLoader } from "https://esm.sh/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
+        import { clone } from "https://esm.sh/three@0.160.0/examples/jsm/utils/SkeletonUtils.js";
+        import * as LocAR from "https://esm.sh/locar";
 
-                <a-entity id="info-panel-root" position="0 7 0" visible="false" face-camera>
-                    <a-plane
-                        id="info-panel"
-                        width="7.2"
-                        height="4.2"
-                        material="shader: flat; transparent: true; opacity: 0.78; color: #10263b; side: double"
-                        scrolling-info-panel
-                    ></a-plane>
-
-                    <a-plane
-                        width="7.26"
-                        height="4.26"
-                        position="0 0 -0.01"
-                        material="shader: flat; transparent: true; opacity: 0.28; color: #cfe8ff; side: double"
-                    ></a-plane>
-                </a-entity>
-            </a-entity>
-        </a-entity>
-
-        <a-camera
-            id="camera"
-            gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 25;"
-            look-controls-enabled="false"
-            arjs-device-orientation-controls="smoothingFactor: 0.1"
-            camera="near: 0.1; far: 100000"
-        ></a-camera>
-    </a-scene>
-
-    <script>
         const appData = {
             all: "all.glb",
             kozakura: "Gun.glb",
@@ -269,622 +270,84 @@
             "2nd": "2nd_NishiokitamaGUnkai_"
         };
 
-        const locations = {
-            tas: { lat: 38.1068, lon: 140.0400 },
-            kozakura: { lat: 38.10134, lon: 140.04299 }
-        };
-
         const descriptions = {
             all: {
-                Japanese: [
-                    "文教の森 AR",
-                    "",
-                    "旧西置賜郡役所と会議事堂を含む建物群の",
-                    "全体像を、現在の風景の中に重ねて確認するための表示です。",
-                    "",
-                    "当時の建物配置や規模感を見比べながら、",
-                    "現在の町並みとの関係を体感してください。",
-                    "",
-                    "必要に応じて回転、高さ、サイズを調整し、",
-                    "実景に合う位置へ微調整してご覧ください。"
-                ].join("\n"),
-                English: [
-                    "Bunkyo no Mori AR",
-                    "",
-                    "This view presents the overall composition of the former",
-                    "former Nishiokitama District Office and assembly halls",
-                    "overlaid onto the present landscape.",
-                    "",
-                    "Compare the historical arrangement and scale of the buildings",
-                    "with the townscape you see today.",
-                    "",
-                    "Adjust rotation, height, and scale as needed for the best fit."
-                ].join("\n"),
-                Chinese: [
-                    "文教之森 AR",
-                    "",
-                    "此画面用于将旧西置赐郡役所与会議事堂等",
-                    "建筑群的整体形态叠加到当前实景中。",
-                    "",
-                    "请对照历史建筑的布局与规模，",
-                    "观察它们与今日街景之间的关系。",
-                    "",
-                    "如有需要，可调整旋转、高度与大小，以获得更合适的重合效果。"
-                ].join("\n"),
-                Korean: [
-                    "문교의 숲 AR",
-                    "",
-                    "이 화면은 옛 니시오키타마 군청과 군회 의사당을 포함한",
-                    "건물군 전체를 현재 풍경 위에",
-                    "겹쳐 보여 주기 위한 안내입니다.",
-                    "",
-                    "당시의 배치와 규모를 오늘의 거리 풍경과 비교해 보세요.",
-                    "",
-                    "필요하면 회전, 높이, 크기를 조정해 더 잘 맞춰 볼 수 있습니다."
-                ].join("\n")
+                Japanese: "文教の森 AR\n\n旧西置賜郡役所と会議事堂を含む建物群の全体像を、現在の風景の中に重ねて確認するための表示です。",
+                English: "Bunkyo no Mori AR\n\nThis display overlays the former Nishiokitama District Office and assembly halls onto the present landscape.",
+                Chinese: "文教之森 AR\n\n此画面将旧西置赐郡役所与会議事堂建筑群叠加到当前风景中进行展示。",
+                Korean: "문교의 숲 AR\n\n이 화면은 구 니시오키타마 군역소와 군회의사당 건물군을 현재 풍경 위에 겹쳐 보여 줍니다."
             },
             kozakura: {
-                Japanese: [
-                    "旧西置賜郡役所",
-                    "",
-                    "旧西置賜郡役所は、明治11年に建てられた",
-                    "擬洋風建築です。",
-                    "",
-                    "日本の木造技術で西洋風の意匠を表した建物で、",
-                    "現在は小桜館として保存・活用されています。",
-                    "",
-                    "この表示では、旧西置賜郡役所の位置と外観の輪郭を",
-                    "現在の風景の中で確認できます。"
-                ].join("\n"),
-                English: [
-                    "Former Nishiokitama District Office",
-                    "",
-                    "The former Nishiokitama District Office was built in 1878.",
-                    "It is an important example of pseudo-Western architecture,",
-                    "combining Japanese wooden construction with Western design.",
-                    "",
-                    "Today, it is preserved and used under the name Kozakurakan.",
-                    "",
-                    "This display shows the building's position and outline",
-                    "within the current landscape."
-                ].join("\n"),
-                Chinese: [
-                    "旧西置赐郡役所",
-                    "",
-                    "旧西置赐郡役所建于1878年，",
-                    "是一座具有代表性的拟洋风建筑。",
-                    "",
-                    "它以日本传统木构技术表现西式外观，",
-                    "如今这座建筑以小樱馆之名被保存并继续利用。",
-                    "",
-                    "此画面可帮助您确认这座建筑在当前风景中的",
-                    "位置与外观轮廓。"
-                ].join("\n"),
-                Korean: [
-                    "구 니시오키타마 군역소",
-                    "",
-                    "구 니시오키타마 군역소는 1878년에 세워진",
-                    "의양풍 건축입니다.",
-                    "",
-                    "일본의 목조 기술로 서양식 디자인을 표현한",
-                    "중요한 건물이며, 현재는 고자쿠라칸으로",
-                    "보존되고 활용되고 있습니다.",
-                    "",
-                    "이 화면에서는 현재 풍경 속에서 이 건물의",
-                    "위치와 외곽을 확인할 수 있습니다."
-                ].join("\n")
+                Japanese: "旧西置賜郡役所\n\n旧西置賜郡役所は、明治11年に建てられた擬洋風建築です。現在は小桜館として保存・活用されています。",
+                English: "Former Nishiokitama District Office\n\nThe former Nishiokitama District Office was built in 1878 and is preserved today as Kozakura-kan.",
+                Chinese: "旧西置赐郡役所\n\n旧西置赐郡役所建于1878年，是具有代表性的拟洋风建筑，现以小樱馆之名保存利用。",
+                Korean: "구 니시오키타마 군역소\n\n구 니시오키타마 군역소는 1878년에 세워진 의양풍 건축으로, 현재 고자쿠라칸으로 보존 활용되고 있습니다."
             },
             "1st": {
-                Japanese: [
-                    "初代旧西置賜郡会議事堂",
-                    "",
-                    "初代旧西置賜郡会議事堂は、明治20年に建てられた",
-                    "洋風木造の議事堂です。",
-                    "",
-                    "ここでは、西置賜郡の議会が開かれました。",
-                    "その後は、置賜織物同業組合の事務所として使われ、",
-                    "地域産業の歩みを見守りました。",
-                    "",
-                    "この表示では、建物の位置や外観を",
-                    "現在の風景の中で確認できます。"
-                ].join("\n"),
-                English: [
-                    "First Former Nishiokitama District Assembly Hall",
-                    "",
-                    "The first Nishiokitama District Assembly Hall was built in 1887",
-                    "as a Western-style wooden hall.",
-                    "",
-                    "It served as the meeting place for the district assembly.",
-                    "Later, it was reused as the office of the Okitama Textile",
-                    "Trade Association and remained connected to the region's",
-                    "industrial history.",
-                    "",
-                    "This display lets you compare its former appearance",
-                    "with the present landscape."
-                ].join("\n"),
-                Chinese: [
-                    "第一代旧西置赐郡会议事堂",
-                    "",
-                    "第一代旧西置赐郡会议事堂建于1887年，",
-                    "是一座西式木造议事堂。",
-                    "",
-                    "这里曾是西置赐郡议会召开的场所。",
-                    "后来，它又被用作置赐织物同业组合事务所，",
-                    "继续见证当地产业的发展。",
-                    "",
-                    "此画面可帮助您在当前风景中确认这座建筑的",
-                    "位置与外观。"
-                ].join("\n"),
-                Korean: [
-                    "초대 구 니시오키타마 군회의사당",
-                    "",
-                    "초대 니시오키타마 군회의사당은 1887년에 세워진",
-                    "서양식 목조 건물입니다.",
-                    "",
-                    "이곳에서는 니시오키타마 군의 의회가 열렸습니다.",
-                    "이후에는 오키타마 직물동업조합 사무소로 사용되며",
-                    "지역 산업의 역사와 이어졌습니다.",
-                    "",
-                    "이 화면에서는 현재 풍경 속에서 건물의 위치와",
-                    "외관을 확인할 수 있습니다."
-                ].join("\n")
+                Japanese: "初代旧西置賜郡会議事堂\n\n初代旧西置賜郡会議事堂は、明治20年に建てられた洋風木造の議事堂です。",
+                English: "First Former Nishiokitama District Assembly Hall\n\nThe first Nishiokitama District Assembly Hall was built in 1887 as a Western-style wooden hall.",
+                Chinese: "第一代旧西置赐郡会议事堂\n\n第一代旧西置赐郡会议事堂建于1887年，是一座西式木造议事堂。",
+                Korean: "초대 구 니시오키타마 군회의사당\n\n초대 니시오키타마 군회의사당은 1887년에 세워진 서양식 목조 건물입니다."
             },
             "2nd": {
-                Japanese: [
-                    "2代目旧西置賜郡会議事堂",
-                    "",
-                    "2代目旧西置賜郡会議事堂は、明治44年10月に",
-                    "郡役所の北側へ新築された議事堂です。",
-                    "",
-                    "郡政の中心施設として使われました。",
-                    "郡政廃止後は、教育会館や図書館として再利用され、",
-                    "学びと文化の場として受け継がれました。",
-                    "",
-                    "この表示では、建物の位置や外観を",
-                    "現在の風景の中で確認できます。"
-                ].join("\n"),
-                English: [
-                    "Second Former Nishiokitama District Assembly Hall",
-                    "",
-                    "The second Nishiokitama District Assembly Hall was newly built",
-                    "in October 1911 on the north side of the district office.",
-                    "",
-                    "It served as a central facility for district administration.",
-                    "After the district system was abolished, the building was reused",
-                    "as an education hall and a library.",
-                    "",
-                    "This display lets you compare its historical appearance",
-                    "with the present landscape."
-                ].join("\n"),
-                Chinese: [
-                    "第二代旧西置赐郡会议事堂",
-                    "",
-                    "第二代旧西置赐郡会议事堂于1911年10月",
-                    "在郡役所北侧新建。",
-                    "",
-                    "它曾是郡政运作的重要设施。",
-                    "郡制废除后，这座建筑又被改作教育会馆和图书馆。",
-                    "",
-                    "此画面可帮助您在当前风景中确认这座建筑的",
-                    "位置与外观。"
-                ].join("\n"),
-                Korean: [
-                    "2대 구 니시오키타마 군회의사당",
-                    "",
-                    "2대 니시오키타마 군회의사당은 1911년 10월",
-                    "군청 북쪽에 새로 지어진 건물입니다.",
-                    "",
-                    "이 건물은 군 행정의 중심 시설로 사용되었습니다.",
-                    "군제가 폐지된 뒤에는 교육회관과 도서관으로",
-                    "다시 활용되었습니다.",
-                    "",
-                    "이 화면에서는 현재 풍경 속에서 건물의 위치와",
-                    "외관을 확인할 수 있습니다."
-                ].join("\n")
+                Japanese: "2代目旧西置賜郡会議事堂\n\n2代目旧西置賜郡会議事堂は、明治44年10月に郡役所の北側へ新築された議事堂です。",
+                English: "Second Former Nishiokitama District Assembly Hall\n\nThe second Nishiokitama District Assembly Hall was newly built in October 1911.",
+                Chinese: "第二代旧西置赐郡会议事堂\n\n第二代旧西置赐郡会议事堂于1911年10月在郡役所北侧新建。",
+                Korean: "2대 구 니시오키타마 군회의사당\n\n2대 니시오키타마 군회의사당은 1911년 10월 군청 북쪽에 새로 지어진 건물입니다."
             }
         };
 
-        let userLoc = null;
-        let currentRotation = 0;
-        let currentHeight = 0;
-        let currentScale = 0.5;
+        const locations = {
+            tas: { lat: 38.1068, lon: 140.0400 },
+            office: { lat: 38.10134, lon: 140.04299 }
+        };
+
+        const renderRoot = document.getElementById("render-root");
+        const statusBar = document.getElementById("status-bar");
+        const textPanel = document.getElementById("text-panel");
+        const textScroll = document.getElementById("text-scroll");
+        const uiToggleButton = document.getElementById("ui-toggle");
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderRoot.appendChild(renderer.domElement);
+
+        scene.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 1.2));
+        const dir = new THREE.DirectionalLight(0xffffff, 1.1);
+        dir.position.set(10, 20, 5);
+        scene.add(dir);
+
+        const loader = new GLTFLoader();
+        const anchorGroup = new THREE.Group();
+        const contentRoot = new THREE.Group();
+        const modelHolder = new THREE.Group();
+        contentRoot.add(modelHolder);
+        anchorGroup.add(contentRoot);
+
+        let locar = null;
+        let deviceControls = null;
+        let webcam = null;
+        let arStarted = false;
         let currentAudio = null;
         let currentLang = "Japanese";
         let currentModelKey = "all";
+        let currentRotation = 0;
+        let currentHeight = 0;
+        let currentScale = 0.5;
+        let userLoc = null;
         let lockedAnchorTarget = null;
         let lockedAnchorType = null;
-        let deviceHeading = null;
-        let orientationPermissionTried = false;
         let uiVisible = true;
+        let currentModelObject = null;
+        let currentHeading = null;
+        let panelHideTimer = null;
+        const modelCache = new Map();
 
-        const gpsAnchor = document.getElementById("gps-anchor");
-        const contentRoot = document.getElementById("content-root");
-        const model = document.getElementById("main-model");
-        const infoPanelRoot = document.getElementById("info-panel-root");
-        const statusBar = document.getElementById("status-bar");
-        const sceneEl = document.querySelector("a-scene");
-        const cameraEl = document.getElementById("camera");
-        const uiToggleButton = document.getElementById("ui-toggle");
-        const cameraProbe = document.getElementById("camera-probe");
-        let cameraProbeStream = null;
-
-        function escapeCanvasText(text) {
-            return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-        }
-
-        function updateStatus(message) {
+        function setStatus(message) {
             statusBar.innerText = message;
-        }
-
-        async function showCameraDiagnostics() {
-            const diagnostics = {
-                secureContext: window.isSecureContext,
-                protocol: window.location.protocol,
-                host: window.location.host || "(file)",
-                mediaDevices: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
-                userAgent: navigator.userAgent
-            };
-
-            if (navigator.permissions && navigator.permissions.query) {
-                try {
-                    const result = await navigator.permissions.query({ name: "camera" });
-                    diagnostics.cameraPermission = result.state;
-                } catch (error) {
-                    diagnostics.cameraPermission = "unknown";
-                }
-            }
-
-            const parts = [
-                `secure=${diagnostics.secureContext}`,
-                `protocol=${diagnostics.protocol}`,
-                `host=${diagnostics.host}`,
-                `media=${diagnostics.mediaDevices}`,
-                `cameraPerm=${diagnostics.cameraPermission || "unknown"}`
-            ];
-
-            updateStatus(`カメラ診断: ${parts.join(" / ")}`);
-            console.log("[camera-diagnostics]", diagnostics);
-        }
-
-        function explainCameraBlockedState() {
-            if (!window.isSecureContext) {
-                updateStatus("カメラ開始不可: HTTPS または localhost で開いてください。file:// や http:// では表示できないことがあります。");
-                return true;
-            }
-
-            if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
-                updateStatus("このブラウザはカメラAPIに対応していません。");
-                return true;
-            }
-
-            return false;
-        }
-
-        async function requestCameraPermission() {
-            if (explainCameraBlockedState()) {
-                return;
-            }
-
-            try {
-                updateStatus("カメラ許可を要求しています...");
-                const stream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { ideal: "environment" }
-                    },
-                    audio: false
-                });
-
-                stream.getTracks().forEach(track => track.stop());
-                updateStatus("カメラ許可を確認しました。ページを再読み込みします。");
-                window.setTimeout(() => location.reload(), 700);
-            } catch (error) {
-                const message = error && error.name ? error.name : String(error);
-                updateStatus(`カメラ許可に失敗しました: ${message}`);
-            }
-        }
-
-        async function startCameraProbe() {
-            if (explainCameraBlockedState()) {
-                return;
-            }
-
-            try {
-                if (cameraProbeStream) {
-                    cameraProbeStream.getTracks().forEach(track => track.stop());
-                    cameraProbeStream = null;
-                }
-
-                updateStatus("直カメラ診断を開始しています...");
-                cameraProbeStream = await navigator.mediaDevices.getUserMedia({
-                    video: {
-                        facingMode: { ideal: "environment" },
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    },
-                    audio: false
-                });
-
-                cameraProbe.srcObject = cameraProbeStream;
-                cameraProbe.style.display = "block";
-                await cameraProbe.play();
-                updateStatus("直カメラ診断OK: 左下の小窓に映像が出ます。ここで出てARだけ出ないならAR.js側の問題です。");
-            } catch (error) {
-                const message = error && error.name ? error.name : String(error);
-                cameraProbe.style.display = "none";
-                updateStatus(`直カメラ診断に失敗しました: ${message}`);
-            }
-        }
-
-        function placeLockedAnchor(target, type, message) {
-            if (!target) {
-                return;
-            }
-
-            lockedAnchorTarget = { lat: target.lat, lon: target.lon };
-            lockedAnchorType = type;
-
-            gpsAnchor.removeAttribute("gps-new-entity-place");
-
-            requestAnimationFrame(() => {
-                gpsAnchor.setAttribute("gps-new-entity-place", {
-                    latitude: lockedAnchorTarget.lat,
-                    longitude: lockedAnchorTarget.lon
-                });
-            });
-
-            document.querySelectorAll(".loc-btn").forEach(button => button.classList.remove("active-btn"));
-            const activeButton = document.getElementById("btn-" + type);
-            if (activeButton) {
-                activeButton.classList.add("active-btn");
-            }
-
-            updateStatus(message);
-        }
-
-        AFRAME.registerComponent("face-camera", {
-            tick: function () {
-                const cam = document.getElementById("camera");
-                if (!cam || !cam.object3D) {
-                    return;
-                }
-
-                const myPos = new THREE.Vector3();
-                const camPos = new THREE.Vector3();
-
-                this.el.object3D.getWorldPosition(myPos);
-                cam.object3D.getWorldPosition(camPos);
-
-                const dx = camPos.x - myPos.x;
-                const dz = camPos.z - myPos.z;
-                const yaw = Math.atan2(dx, dz) * 180 / Math.PI;
-
-                this.el.setAttribute("rotation", `0 ${yaw} 0`);
-            }
-        });
-
-        AFRAME.registerComponent("scrolling-info-panel", {
-            init: function () {
-                this.canvas = document.createElement("canvas");
-                this.canvas.width = 1024;
-                this.canvas.height = 640;
-                this.ctx = this.canvas.getContext("2d");
-
-                this.texture = new THREE.CanvasTexture(this.canvas);
-                this.texture.minFilter = THREE.LinearFilter;
-                this.texture.magFilter = THREE.LinearFilter;
-                this.texture.needsUpdate = true;
-
-                this.scrollY = this.canvas.height + 40;
-                this.scrollSpeed = 28;
-                this.lastTime = performance.now();
-                this.padding = 56;
-                this.lineHeight = 40;
-                this.font = "bold 30px sans-serif";
-                this.text = "";
-                this.textHeight = 0;
-                this.visibleUntil = 0;
-                this.isPlaying = false;
-
-                this.el.setAttribute("material", "src", this.canvas);
-                this.el.setAttribute("material", "transparent", true);
-                this.el.setAttribute("material", "alphaTest", 0.01);
-                this.draw();
-            },
-
-            updateText: function (newText) {
-                this.text = escapeCanvasText(newText);
-                this.lines = this.wrapText(this.text, this.canvas.width - this.padding * 2);
-                this.textHeight = this.lines.length * this.lineHeight;
-                this.scrollY = this.canvas.height + 20;
-                this.isPlaying = false;
-                this.draw();
-            },
-
-            play: function (newText) {
-                this.updateText(newText);
-                this.isPlaying = true;
-                infoPanelRoot.setAttribute("visible", true);
-                const scrollDurationMs = ((this.canvas.height + this.textHeight + 60) / this.scrollSpeed) * 1000;
-                this.visibleUntil = performance.now() + scrollDurationMs + 4000;
-            },
-
-            hide: function () {
-                this.isPlaying = false;
-                this.visibleUntil = 0;
-                infoPanelRoot.setAttribute("visible", false);
-            },
-
-            wrapText: function (text, maxWidth) {
-                const ctx = this.ctx;
-                ctx.font = this.font;
-
-                const rawLines = text.split("\n");
-                const output = [];
-
-                rawLines.forEach(line => {
-                    if (line.trim() === "") {
-                        output.push("");
-                        return;
-                    }
-
-                    let buffer = "";
-                    for (const ch of line) {
-                        const test = buffer + ch;
-                        if (ctx.measureText(test).width > maxWidth && buffer !== "") {
-                            output.push(buffer);
-                            buffer = ch;
-                        } else {
-                            buffer = test;
-                        }
-                    }
-
-                    if (buffer !== "") {
-                        output.push(buffer);
-                    }
-                });
-
-                return output;
-            },
-
-            tick: function (time) {
-                const delta = Math.min((time - this.lastTime) / 1000, 0.05);
-                this.lastTime = time;
-                if (this.isPlaying) {
-                    this.scrollY -= this.scrollSpeed * delta;
-                    if (time >= this.visibleUntil) {
-                        this.hide();
-                        return;
-                    }
-                }
-
-                this.draw();
-            },
-
-            draw: function () {
-                const ctx = this.ctx;
-                const w = this.canvas.width;
-                const h = this.canvas.height;
-
-                ctx.clearRect(0, 0, w, h);
-
-                const panelGrad = ctx.createLinearGradient(0, 0, 0, h);
-                panelGrad.addColorStop(0, "rgba(12, 25, 42, 0.86)");
-                panelGrad.addColorStop(1, "rgba(18, 53, 78, 0.72)");
-                ctx.fillStyle = panelGrad;
-                ctx.fillRect(0, 0, w, h);
-
-                ctx.strokeStyle = "rgba(220, 240, 255, 0.60)";
-                ctx.lineWidth = 6;
-                ctx.strokeRect(10, 10, w - 20, h - 20);
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(this.padding, 40, w - this.padding * 2, h - 80);
-                ctx.clip();
-
-                ctx.font = this.font;
-                ctx.textAlign = "center";
-                ctx.textBaseline = "top";
-
-                let y = this.scrollY;
-                for (let i = 0; i < this.lines.length; i++) {
-                    ctx.fillStyle = "rgba(255,255,255,0.96)";
-                    ctx.fillText(this.lines[i], w / 2, y);
-                    y += this.lineHeight;
-                }
-
-                ctx.restore();
-
-                const fadeTop = ctx.createLinearGradient(0, 0, 0, 72);
-                fadeTop.addColorStop(0, "rgba(16, 38, 59, 1)");
-                fadeTop.addColorStop(1, "rgba(16, 38, 59, 0)");
-                ctx.fillStyle = fadeTop;
-                ctx.fillRect(0, 0, w, 72);
-
-                const fadeBottom = ctx.createLinearGradient(0, h - 72, 0, h);
-                fadeBottom.addColorStop(0, "rgba(16, 38, 59, 0)");
-                fadeBottom.addColorStop(1, "rgba(16, 38, 59, 1)");
-                ctx.fillStyle = fadeBottom;
-                ctx.fillRect(0, h - 72, w, 72);
-
-                this.texture.needsUpdate = true;
-            }
-        });
-
-        function getInfoPanelComponent() {
-            const panel = document.getElementById("info-panel");
-            return panel && panel.components ? panel.components["scrolling-info-panel"] : null;
-        }
-
-        function updateInfoPanelLanguage() {
-            const panelComp = getInfoPanelComponent();
-            if (panelComp) {
-                panelComp.updateText(getCurrentDescription());
-            }
-        }
-
-        function getCurrentDescription() {
-            const modelDescriptions = descriptions[currentModelKey] || descriptions.all;
-            return modelDescriptions[currentLang] || modelDescriptions.Japanese || "";
-        }
-
-        function showCurrentInfoPanel() {
-            const panelComp = getInfoPanelComponent();
-            if (panelComp) {
-                panelComp.play(getCurrentDescription());
-            }
-        }
-
-        function setLang(lang) {
-            currentLang = lang;
-            document.querySelectorAll(".top-center button").forEach(button => button.classList.remove("active-btn"));
-            document.getElementById("lang-" + lang).classList.add("active-btn");
-            showCurrentInfoPanel();
-        }
-
-        function switchModel(key) {
-            currentModelKey = key;
-            model.setAttribute("gltf-model", appData[key]);
-            document.querySelectorAll(".left-menu button:not(.loc-btn):not(.audio-btn)").forEach(button => button.classList.remove("active-btn"));
-            const btn = document.getElementById("m-" + key);
-            if (btn) {
-                btn.classList.add("active-btn");
-            }
-            showCurrentInfoPanel();
-        }
-
-        function adjustRotation(deg) {
-            currentRotation += deg;
-            model.setAttribute("rotation", `0 ${currentRotation} 0`);
-        }
-
-        function adjustScale(factor) {
-            currentScale *= factor;
-            contentRoot.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`);
-        }
-
-        function adjustHeight(delta) {
-            currentHeight += delta;
-            contentRoot.setAttribute("position", `0 ${currentHeight} 0`);
-        }
-
-        function stopAllAudio() {
-            if (currentAudio) {
-                currentAudio.pause();
-                currentAudio.currentTime = 0;
-                currentAudio = null;
-            }
-        }
-
-        function playAudio(key) {
-            currentModelKey = key;
-            stopAllAudio();
-            const fileName = "audio/" + audioFiles[key] + currentLang + ".wav";
-            currentAudio = new Audio(fileName);
-            currentAudio.play().catch(() => {
-                statusBar.innerText = "音声の再生に失敗しました。";
-            });
-            showCurrentInfoPanel();
         }
 
         function toggleUi() {
@@ -892,6 +355,7 @@
             document.body.classList.toggle("ui-hidden", !uiVisible);
             uiToggleButton.textContent = uiVisible ? "UI OFF" : "UI ON";
         }
+        window.toggleUi = toggleUi;
 
         function degreesToRadians(deg) {
             return deg * Math.PI / 180;
@@ -924,131 +388,292 @@
             };
         }
 
-        function requestOrientationPermissionIfNeeded() {
-            if (orientationPermissionTried) {
+        function getCurrentDescription() {
+            const group = descriptions[currentModelKey] || descriptions.all;
+            return group[currentLang] || group.Japanese || "";
+        }
+
+        function showTextPanel(text) {
+            const content = text || "";
+            textScroll.textContent = content;
+            textPanel.classList.add("show");
+
+            requestAnimationFrame(() => {
+                const panelHeight = textPanel.clientHeight;
+                const textHeight = textScroll.scrollHeight;
+                const fromY = panelHeight;
+                const toY = -textHeight;
+                const duration = Math.max(6000, content.length * 120);
+                textScroll.animate(
+                    [
+                        { transform: `translate(-50%, ${fromY}px)` },
+                        { transform: `translate(-50%, ${toY}px)` }
+                    ],
+                    {
+                        duration,
+                        easing: "linear",
+                        fill: "forwards"
+                    }
+                );
+
+                if (panelHideTimer) {
+                    clearTimeout(panelHideTimer);
+                }
+                panelHideTimer = setTimeout(() => {
+                    textPanel.classList.remove("show");
+                }, duration + 3000);
+            });
+        }
+
+        function applyModelTransform() {
+            contentRoot.position.set(0, currentHeight, 0);
+            contentRoot.scale.setScalar(currentScale);
+            modelHolder.rotation.set(0, degreesToRadians(currentRotation), 0);
+        }
+
+        async function loadModelObject(key) {
+            if (modelCache.has(key)) {
+                return clone(modelCache.get(key));
+            }
+
+            const fileName = appData[key];
+            const gltf = await loader.loadAsync(fileName);
+            gltf.scene.traverse(obj => {
+                if (obj.isMesh) {
+                    obj.frustumCulled = false;
+                    if (obj.material) {
+                        obj.material.needsUpdate = true;
+                    }
+                }
+            });
+            modelCache.set(key, gltf.scene);
+            return clone(gltf.scene);
+        }
+
+        async function switchModel(key) {
+            currentModelKey = key;
+            document.querySelectorAll(".left-menu button[id^='m-']").forEach(button => button.classList.remove("active-btn"));
+            const btn = document.getElementById("m-" + key);
+            if (btn) {
+                btn.classList.add("active-btn");
+            }
+
+            setStatus(`モデルを読み込んでいます: ${key}`);
+            try {
+                const nextObject = await loadModelObject(key);
+                if (currentModelObject) {
+                    modelHolder.remove(currentModelObject);
+                }
+                currentModelObject = nextObject;
+                modelHolder.add(currentModelObject);
+                applyModelTransform();
+                showTextPanel(getCurrentDescription());
+                setStatus(`モデルを表示しました: ${key}`);
+            } catch (error) {
+                setStatus(`モデル読み込みに失敗しました: ${error.message || error}`);
+            }
+        }
+        window.switchModel = switchModel;
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll(".top-center button[id^='lang-']").forEach(button => button.classList.remove("active-btn"));
+            document.getElementById("lang-" + lang).classList.add("active-btn");
+            showTextPanel(getCurrentDescription());
+        }
+        window.setLang = setLang;
+
+        function adjustRotation(delta) {
+            currentRotation += delta;
+            applyModelTransform();
+        }
+        window.adjustRotation = adjustRotation;
+
+        function adjustHeight(delta) {
+            currentHeight += delta;
+            applyModelTransform();
+        }
+        window.adjustHeight = adjustHeight;
+
+        function adjustScale(factor) {
+            currentScale *= factor;
+            applyModelTransform();
+        }
+        window.adjustScale = adjustScale;
+
+        function stopAllAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+        }
+        window.stopAllAudio = stopAllAudio;
+
+        function playAudio(key) {
+            currentModelKey = key;
+            stopAllAudio();
+            const fileName = `audio/${audioFiles[key]}${currentLang}.wav`;
+            currentAudio = new Audio(fileName);
+            currentAudio.play().catch(() => {
+                setStatus("音声の再生に失敗しました。");
+            });
+            showTextPanel(getCurrentDescription());
+        }
+        window.playAudio = playAudio;
+
+        function lockAnchor(target, type, message) {
+            if (!locar || !target) {
                 return;
             }
 
-            orientationPermissionTried = true;
+            lockedAnchorTarget = { lat: target.lat, lon: target.lon };
+            lockedAnchorType = type;
 
-            const fn = DeviceOrientationEvent && DeviceOrientationEvent.requestPermission;
-            if (typeof fn === "function") {
-                DeviceOrientationEvent.requestPermission()
-                    .then(state => {
-                        if (state === "granted") {
-                            updateStatus("方位センサーの使用を許可しました。");
-                        } else {
-                            updateStatus("方位センサー未許可のため、現在地配置は北方向基準になります。");
-                        }
-                    })
-                    .catch(() => {
-                        updateStatus("方位センサー許可に失敗しました。");
-                    });
+            if (anchorGroup.parent) {
+                anchorGroup.parent.remove(anchorGroup);
             }
+            locar.add(anchorGroup, lockedAnchorTarget.lon, lockedAnchorTarget.lat, 0);
+
+            document.querySelectorAll(".loc-btn").forEach(button => button.classList.remove("active-btn"));
+            const btn = document.getElementById("btn-" + type);
+            if (btn) {
+                btn.classList.add("active-btn");
+            }
+
+            setStatus(message);
         }
 
-        function updateHeading(event) {
-            if (typeof event.webkitCompassHeading === "number") {
-                deviceHeading = event.webkitCompassHeading;
-                return;
-            }
-
-            if (event.absolute === true && typeof event.alpha === "number") {
-                deviceHeading = (360 - event.alpha + 360) % 360;
-            }
-        }
-
-        window.addEventListener("deviceorientationabsolute", updateHeading, true);
-        window.addEventListener("deviceorientation", updateHeading, true);
-
-        function setAnchorLocation(type) {
-            requestOrientationPermissionIfNeeded();
-
-            let target = null;
-
+        function resolveAnchorTarget(type) {
             if (type === "current") {
                 if (!userLoc) {
-                    updateStatus("現在地がまだ取得できていません。");
-                    return;
+                    return null;
                 }
-
-                const bearing = typeof deviceHeading === "number" ? deviceHeading : 0;
-                target = destinationPoint(userLoc.lat, userLoc.lon, bearing, 15);
-            } else if (locations[type]) {
-                target = locations[type];
+                const bearing = typeof currentHeading === "number" ? currentHeading : 0;
+                return destinationPoint(userLoc.lat, userLoc.lon, bearing, 15);
             }
+            return locations[type] || null;
+        }
 
+        function setAnchorLocation(type) {
+            const target = resolveAnchorTarget(type);
             if (!target) {
+                setStatus("現在地がまだ取得できていません。AR開始後、GPS取得を待ってください。");
                 return;
             }
 
-            if (!model.getAttribute("gltf-model")) {
-                switchModel("all");
-            }
-
             if (type === "current") {
-                if (typeof deviceHeading === "number") {
-                    placeLockedAnchor(target, type, "現在地の前方15mに固定しました。建物はこの座標に固定されます。");
-                } else {
-                    placeLockedAnchor(target, type, "方位未取得のため、現在地の北側15mに固定しました。建物はこの座標に固定されます。");
-                }
+                lockAnchor(target, type, "現在地の前方15mに固定しました。以後はこのGPS座標へ固定します。");
             } else {
-                placeLockedAnchor(target, type, "指定地点に固定しました。建物はこの座標に固定されます。");
+                lockAnchor(target, type, "指定地点に固定しました。以後はこのGPS座標へ固定します。");
             }
         }
+        window.setAnchorLocation = setAnchorLocation;
 
-        navigator.geolocation.watchPosition(
-            pos => {
-                userLoc = {
-                    lat: pos.coords.latitude,
-                    lon: pos.coords.longitude,
-                    accuracy: pos.coords.accuracy
-                };
+        async function showDiagnostics() {
+            const diagnostics = {
+                secureContext: window.isSecureContext,
+                protocol: window.location.protocol,
+                host: window.location.host || "(file)",
+                mediaDevices: !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                geolocation: !!navigator.geolocation,
+                arStarted,
+                userLoc,
+                lockedAnchorTarget
+            };
 
-                if (statusBar.innerText === "GPSを取得中...") {
-                    updateStatus("GPS OK。固定場所を選んでください。");
-                }
-            },
-            err => {
-                updateStatus("GPS取得に失敗しました: " + err.message);
-            },
-            {
-                enableHighAccuracy: true,
-                maximumAge: 0,
-                timeout: 15000
+            setStatus(`診断: secure=${diagnostics.secureContext} / media=${diagnostics.mediaDevices} / geo=${diagnostics.geolocation} / arStarted=${diagnostics.arStarted}`);
+            console.log("[locar-diagnostics]", diagnostics);
+        }
+        window.showDiagnostics = showDiagnostics;
+
+        async function startAr() {
+            if (arStarted) {
+                setStatus("ARは開始済みです。");
+                return;
             }
-        );
 
-        sceneEl.addEventListener("loaded", () => {
-            updateInfoPanelLanguage();
-            showCameraDiagnostics();
-            explainCameraBlockedState();
-        });
-
-        cameraEl.addEventListener("gps-camera-update-position", event => {
-            const accuracy = event.detail && event.detail.position ? event.detail.position.accuracy : null;
-            if (typeof accuracy === "number" && accuracy > 50) {
-                updateStatus(`GPS精度が低いです (${Math.round(accuracy)}m)。空が見える場所で再確認してください。`);
+            if (!window.isSecureContext) {
+                setStatus("AR開始不可: HTTPS または localhost で開いてください。");
+                return;
             }
-        });
 
-        sceneEl.addEventListener("camera-init", () => {
-            updateStatus("カメラ映像を開始しました。");
-        });
+            try {
+                setStatus("カメラとGPSを初期化しています...");
 
-        sceneEl.addEventListener("camera-error", event => {
-            const detail = event && event.detail ? JSON.stringify(event.detail) : "unknown";
-            updateStatus(`カメラ開始に失敗しました: ${detail}`);
-        });
+                webcam = new LocAR.Webcam({
+                    video: {
+                        facingMode: { ideal: "environment" }
+                    }
+                });
 
-        model.addEventListener("model-loaded", () => {
-            if (lockedAnchorTarget) {
-                placeLockedAnchor(
-                    lockedAnchorTarget,
-                    lockedAnchorType || "current",
-                    "モデルを読み込みました。固定座標へ再配置しました。"
-                );
+                webcam.addEventListener("webcamstarted", event => {
+                    scene.background = event.detail.texture;
+                    setStatus("カメラ映像を開始しました。GPSを待っています...");
+                });
+
+                webcam.addEventListener("webcamerror", event => {
+                    setStatus(`カメラ開始に失敗しました: ${event.detail?.message || "unknown"}`);
+                });
+
+                await webcam.start();
+
+                locar = new LocAR.LocationBased(scene, camera);
+                locar.on("gpsupdate", event => {
+                    const coords = event.coords || event.detail?.coords;
+                    if (!coords) {
+                        return;
+                    }
+
+                    userLoc = {
+                        lat: coords.latitude,
+                        lon: coords.longitude,
+                        accuracy: coords.accuracy
+                    };
+
+                    if (!lockedAnchorTarget) {
+                        setStatus("GPS OK。固定場所を選んでください。");
+                    }
+                });
+
+                locar.on("gpserror", error => {
+                    const message = error?.message || error?.detail?.message || "unknown";
+                    setStatus(`GPS取得に失敗しました: ${message}`);
+                });
+
+                deviceControls = new LocAR.DeviceOrientationControls(camera);
+                deviceControls.addEventListener("deviceorientation", event => {
+                    if (typeof event?.detail?.alpha === "number") {
+                        currentHeading = (360 - event.detail.alpha + 360) % 360;
+                    }
+                });
+                deviceControls.addEventListener("deviceorientationgranted", () => {
+                    setStatus("方位センサーを許可しました。");
+                });
+                deviceControls.addEventListener("deviceorientationerror", event => {
+                    setStatus(`方位センサーに失敗しました: ${event?.detail?.message || "unknown"}`);
+                });
+
+                await deviceControls.init();
+                locar.startGps();
+                arStarted = true;
+                await switchModel("all");
+            } catch (error) {
+                setStatus(`AR開始に失敗しました: ${error.message || error}`);
             }
+        }
+        window.startAr = startAr;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener("resize", () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
