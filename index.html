@@ -2,47 +2,139 @@
 <html lang="ja">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - 全機能・UI切替付</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    >
+    <title>文教の森 AR - GPS固定版</title>
 
-    <script src="https://aframe.io/releases/1.3.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/three.js/build/ar-threex-location-only.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
 
     <style>
-        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; touch-action: none; }
-        #ui-layer { position: absolute; inset: 0; z-index: 100; pointer-events: none; }
-        .clickable { pointer-events: auto; }
-        
-        /* UI ON/OFF ボタン */
-        #ui-toggle { position: absolute; top: 10px; right: 10px; z-index: 120; pointer-events: auto; background: rgba(33, 33, 33, 0.88); color: white; padding: 8px 12px; border-radius: 5px; border: 1px solid #fff; font-weight: bold; font-size: 12px; }
-        .ui-hidden .ui-group { display: none; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: sans-serif;
+            background: #000;
+            touch-action: none;
+        }
 
-        button { 
-            padding: 10px; border-radius: 8px; border: none; background: white; 
-            font-weight: bold; font-size: 11px; cursor: pointer; 
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4); color: #333;
+        #ui-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #ui-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 120;
+            pointer-events: auto;
+            background: rgba(33, 33, 33, 0.88);
+            color: white;
+        }
+
+        .clickable {
+            pointer-events: auto;
+        }
+
+        .ui-group {
+            pointer-events: auto;
+        }
+
+        .ui-hidden .ui-group {
+            display: none;
+        }
+
+        button {
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: white;
+            font-weight: bold;
+            font-size: 11px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+            color: #333;
             touch-action: manipulation;
         }
-        .active-btn { background: #4caf50 !important; color: white; }
-        .audio-btn { background: #ff9800; color: white; min-width: 50px; }
-        .loc-btn { background: #2196f3; color: white; width: 100%; }
-        .rotate-btn { background: #9c27b0 !important; color: white; flex: 1; }
-        .label { color: white; font-size: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
 
-        .menu { position: absolute; display: flex; flex-direction: column; gap: 6px; }
-        .top-center { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; width: 80%; justify-content: center; flex-wrap: wrap; }
-        .left-menu { top: 60px; left: 10px; width: 210px; }
-        .right-menu { top: 60px; right: 10px; align-items: flex-end; width: 130px; }
-        
-        .model-row { display: flex; gap: 4px; width: 100%; }
-        .model-row > button:first-child { flex: 1; }
-        #status-bar { position: absolute; bottom: 80px; width: 100%; text-align: center; color: #0f0; background: rgba(0, 0, 0, 0.45); font-size: 11px; padding: 4px 0; }
+        .active-btn {
+            background: #4caf50 !important;
+            color: white;
+        }
+
+        .loc-btn {
+            background: #2196f3;
+            color: white;
+            width: 100%;
+        }
+
+        .rotate-btn {
+            background: #9c27b0 !important;
+            color: white;
+            flex: 1;
+        }
+
+        .label {
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+            margin-bottom: 2px;
+        }
+
+        .menu {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .top-center {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            width: 95%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .left-menu {
+            top: 60px;
+            left: 10px;
+            width: 165px;
+        }
+
+        .right-menu {
+            top: 60px;
+            right: 10px;
+            align-items: flex-end;
+            width: 130px;
+        }
+
+        #status-bar {
+            position: absolute;
+            bottom: 80px;
+            width: 100%;
+            text-align: center;
+            color: #0f0;
+            background: rgba(0, 0, 0, 0.45);
+            font-size: 11px;
+            padding: 4px 0;
+        }
     </style>
 </head>
 
-<body class="ui-visible">
+<body>
     <button id="ui-toggle" onclick="toggleUi()">UI OFF</button>
-
     <div id="ui-layer">
         <div class="top-center clickable ui-group">
             <button id="lang-Japanese" class="active-btn" onclick="setLang('Japanese')">日本語</button>
@@ -53,26 +145,25 @@
 
         <div class="left-menu menu clickable ui-group">
             <div class="label">建物を固定する場所</div>
-            <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">① 現在地の北へ15m</button>
+            <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">① 現在地の15m先</button>
             <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">② タスホテル</button>
-            <button id="btn-office" class="loc-btn" onclick="setAnchorLocation('office')">③ 旧西置賜郡役所</button>
+            <button id="btn-kozakura" class="loc-btn" onclick="setAnchorLocation('kozakura')">③ 旧西置賜郡役所</button>
 
             <div class="label" style="margin-top:10px;">表示モデル / 音声解説</div>
-            <button id="m-all" onclick="switchModel('all')" style="width:100%;">全体(all)</button>
-            
-            <div class="model-row">
+            <button id="m-all" onclick="switchModel('all')">全体(all)</button>
+            <div style="display:flex; gap:4px;">
                 <button id="m-kozakura" onclick="switchModel('kozakura')">旧西置賜郡役所</button>
-                <button class="audio-btn" onclick="playAudio('kozakura')">説明</button>
+                <button class="audio-btn" style="background:#ff9800; color:white; width:35px;" onclick="playAudio('kozakura')">🔊</button>
             </div>
-            <div class="model-row">
-                <button id="m-1st" onclick="switchModel('1st')">初代議事堂</button>
-                <button class="audio-btn" onclick="playAudio('1st')">説明</button>
+            <div style="display:flex; gap:4px;">
+                <button id="m-1st" onclick="switchModel('1st')">初代</button>
+                <button class="audio-btn" style="background:#ff9800; color:white; width:35px;" onclick="playAudio('1st')">🔊</button>
             </div>
-            <div class="model-row">
-                <button id="m-2nd" onclick="switchModel('2nd')">2代目議事堂</button>
-                <button class="audio-btn" onclick="playAudio('2nd')">説明</button>
+            <div style="display:flex; gap:4px;">
+                <button id="m-2nd" onclick="switchModel('2nd')">二代目</button>
+                <button class="audio-btn" style="background:#ff9800; color:white; width:35px;" onclick="playAudio('2nd')">🔊</button>
             </div>
-            <button onclick="stopAllAudio()" style="background:#607d8b; color:white; margin-top:4px;">音声停止 ⏹</button>
+            <button onclick="stopAllAudio()" style="background:#607d8b; color:white; margin-top:4px;">音声停止</button>
         </div>
 
         <div class="right-menu menu clickable ui-group">
@@ -81,102 +172,744 @@
                 <button class="rotate-btn" onclick="adjustRotation(-30)">左回</button>
                 <button class="rotate-btn" onclick="adjustRotation(30)">右回</button>
             </div>
+
             <div class="label" style="margin-top:10px;">高度 / サイズ</div>
             <div style="display:flex; gap:4px; width:100%;">
-                <button style="flex:1" onclick="adjustHeight(1)">上昇</button><button style="flex:1" onclick="adjustHeight(-1)">下降</button>
+                <button style="flex:1" onclick="adjustHeight(0.5)">上昇</button>
+                <button style="flex:1" onclick="adjustHeight(-0.5)">下降</button>
             </div>
             <div style="display:flex; gap:4px; width:100%;">
-                <button style="flex:1" onclick="adjustScale(1.2)">拡大</button><button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
+                <button style="flex:1" onclick="adjustScale(1.2)">拡大</button>
+                <button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
             </div>
-            <button onclick="currentScale=1.0; updateTransform();" style="width:100%;">1倍(等身大)</button>
+
             <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
         </div>
+
         <div id="status-bar" class="ui-group">GPSを取得中...</div>
     </div>
 
-    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false;" renderer="logarithmicDepthBuffer: true;">
+    <a-scene
+        embedded
+        vr-mode-ui="enabled: false"
+        renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true; precision: high;"
+        arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;"
+    >
         <a-entity id="gps-anchor">
-            <a-entity id="content-root" scale="0.5 0.5 0.5" position="0 0 0">
+            <a-entity id="content-root" position="0 0 0" scale="0.5 0.5 0.5">
                 <a-entity id="main-model" gltf-model="" rotation="0 0 0" frustum-culled="false"></a-entity>
+
+                <a-entity id="info-panel-root" position="0 7 0" visible="false" face-camera>
+                    <a-plane
+                        id="info-panel"
+                        width="7.2"
+                        height="4.2"
+                        material="shader: flat; transparent: true; opacity: 0.78; color: #10263b; side: double"
+                        scrolling-info-panel
+                    ></a-plane>
+
+                    <a-plane
+                        width="7.26"
+                        height="4.26"
+                        position="0 0 -0.01"
+                        material="shader: flat; transparent: true; opacity: 0.28; color: #cfe8ff; side: double"
+                    ></a-plane>
+                </a-entity>
             </a-entity>
         </a-entity>
 
-        <a-camera id="camera" gps-camera="gpsMinDistance: 0; positionMinAccuracy: 1000;" rotation-reader look-controls="enabled: false">
-            <a-entity id="info-panel-root" position="0 -1.1 -3.5" visible="false">
-                <a-plane id="info-panel" width="3" height="1.6" material="shader: flat; transparent: true; opacity: 0.8; color: #10263b;" scrolling-info-panel></a-plane>
-            </a-entity>
-        </a-camera>
+        <a-camera
+            id="camera"
+            gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 25;"
+            look-controls-enabled="false"
+            arjs-device-orientation-controls="smoothingFactor: 0.1"
+            camera="near: 0.1; far: 100000"
+        ></a-camera>
     </a-scene>
 
     <script>
-        const appData = { all: "all.glb", kozakura: "Gun.glb", "1st": "1st.glb", "2nd": "2nd.glb" };
-        const audioFiles = { kozakura: "Kozakura_", "1st": "1st_NisiokitamaGunkai_", "2nd": "2nd_NishiokitamaGUnkai_" };
-        const locations = { tas: { lat: 38.1068, lon: 140.04 }, office: { lat: 38.10134, lon: 140.04299 } };
+        const appData = {
+            all: "all.glb",
+            kozakura: "Gun.glb",
+            "1st": "1st.glb",
+            "2nd": "2nd.glb"
+        };
 
-        let userLoc = null, currentRotation = 0, currentHeight = 0, currentScale = 0.5, currentAudio = null, currentLang = "Japanese";
-        const gpsAnchor = document.getElementById("gps-anchor"), contentRoot = document.getElementById("content-root"), model = document.getElementById("main-model"), infoPanelRoot = document.getElementById("info-panel-root"), statusBar = document.getElementById("status-bar");
+        const audioFiles = {
+            kozakura: "Kozakura_",
+            "1st": "1st_NisiokitamaGunkai_",
+            "2nd": "2nd_NishiokitamaGUnkai_"
+        };
+
+        const locations = {
+            tas: { lat: 38.1068, lon: 140.0400 },
+            kozakura: { lat: 38.10134, lon: 140.04299 }
+        };
+
+        const descriptions = {
+            all: {
+                Japanese: [
+                    "文教の森 AR",
+                    "",
+                    "旧西置賜郡役所と会議事堂を含む建物群の",
+                    "全体像を、現在の風景の中に重ねて確認するための表示です。",
+                    "",
+                    "当時の建物配置や規模感を見比べながら、",
+                    "現在の町並みとの関係を体感してください。",
+                    "",
+                    "必要に応じて回転、高さ、サイズを調整し、",
+                    "実景に合う位置へ微調整してご覧ください。"
+                ].join("\n"),
+                English: [
+                    "Bunkyo no Mori AR",
+                    "",
+                    "This view presents the overall composition of the former",
+                    "former Nishiokitama District Office and assembly halls",
+                    "overlaid onto the present landscape.",
+                    "",
+                    "Compare the historical arrangement and scale of the buildings",
+                    "with the townscape you see today.",
+                    "",
+                    "Adjust rotation, height, and scale as needed for the best fit."
+                ].join("\n"),
+                Chinese: [
+                    "文教之森 AR",
+                    "",
+                    "此画面用于将旧西置赐郡役所与会議事堂等",
+                    "建筑群的整体形态叠加到当前实景中。",
+                    "",
+                    "请对照历史建筑的布局与规模，",
+                    "观察它们与今日街景之间的关系。",
+                    "",
+                    "如有需要，可调整旋转、高度与大小，以获得更合适的重合效果。"
+                ].join("\n"),
+                Korean: [
+                    "문교의 숲 AR",
+                    "",
+                    "이 화면은 옛 니시오키타마 군청과 군회 의사당을 포함한",
+                    "건물군 전체를 현재 풍경 위에",
+                    "겹쳐 보여 주기 위한 안내입니다.",
+                    "",
+                    "당시의 배치와 규모를 오늘의 거리 풍경과 비교해 보세요.",
+                    "",
+                    "필요하면 회전, 높이, 크기를 조정해 더 잘 맞춰 볼 수 있습니다."
+                ].join("\n")
+            },
+            kozakura: {
+                Japanese: [
+                    "旧西置賜郡役所",
+                    "",
+                    "旧西置賜郡役所は、明治11年に建てられた",
+                    "擬洋風建築です。",
+                    "",
+                    "日本の木造技術で西洋風の意匠を表した建物で、",
+                    "現在は小桜館として保存・活用されています。",
+                    "",
+                    "この表示では、旧西置賜郡役所の位置と外観の輪郭を",
+                    "現在の風景の中で確認できます。"
+                ].join("\n"),
+                English: [
+                    "Former Nishiokitama District Office",
+                    "",
+                    "The former Nishiokitama District Office was built in 1878.",
+                    "It is an important example of pseudo-Western architecture,",
+                    "combining Japanese wooden construction with Western design.",
+                    "",
+                    "Today, it is preserved and used under the name Kozakurakan.",
+                    "",
+                    "This display shows the building's position and outline",
+                    "within the current landscape."
+                ].join("\n"),
+                Chinese: [
+                    "旧西置赐郡役所",
+                    "",
+                    "旧西置赐郡役所建于1878年，",
+                    "是一座具有代表性的拟洋风建筑。",
+                    "",
+                    "它以日本传统木构技术表现西式外观，",
+                    "如今这座建筑以小樱馆之名被保存并继续利用。",
+                    "",
+                    "此画面可帮助您确认这座建筑在当前风景中的",
+                    "位置与外观轮廓。"
+                ].join("\n"),
+                Korean: [
+                    "구 니시오키타마 군역소",
+                    "",
+                    "구 니시오키타마 군역소는 1878년에 세워진",
+                    "의양풍 건축입니다.",
+                    "",
+                    "일본의 목조 기술로 서양식 디자인을 표현한",
+                    "중요한 건물이며, 현재는 고자쿠라칸으로",
+                    "보존되고 활용되고 있습니다.",
+                    "",
+                    "이 화면에서는 현재 풍경 속에서 이 건물의",
+                    "위치와 외곽을 확인할 수 있습니다."
+                ].join("\n")
+            },
+            "1st": {
+                Japanese: [
+                    "初代旧西置賜郡会議事堂",
+                    "",
+                    "初代旧西置賜郡会議事堂は、明治20年に建てられた",
+                    "洋風木造の議事堂です。",
+                    "",
+                    "ここでは、西置賜郡の議会が開かれました。",
+                    "その後は、置賜織物同業組合の事務所として使われ、",
+                    "地域産業の歩みを見守りました。",
+                    "",
+                    "この表示では、建物の位置や外観を",
+                    "現在の風景の中で確認できます。"
+                ].join("\n"),
+                English: [
+                    "First Former Nishiokitama District Assembly Hall",
+                    "",
+                    "The first Nishiokitama District Assembly Hall was built in 1887",
+                    "as a Western-style wooden hall.",
+                    "",
+                    "It served as the meeting place for the district assembly.",
+                    "Later, it was reused as the office of the Okitama Textile",
+                    "Trade Association and remained connected to the region's",
+                    "industrial history.",
+                    "",
+                    "This display lets you compare its former appearance",
+                    "with the present landscape."
+                ].join("\n"),
+                Chinese: [
+                    "第一代旧西置赐郡会议事堂",
+                    "",
+                    "第一代旧西置赐郡会议事堂建于1887年，",
+                    "是一座西式木造议事堂。",
+                    "",
+                    "这里曾是西置赐郡议会召开的场所。",
+                    "后来，它又被用作置赐织物同业组合事务所，",
+                    "继续见证当地产业的发展。",
+                    "",
+                    "此画面可帮助您在当前风景中确认这座建筑的",
+                    "位置与外观。"
+                ].join("\n"),
+                Korean: [
+                    "초대 구 니시오키타마 군회의사당",
+                    "",
+                    "초대 니시오키타마 군회의사당은 1887년에 세워진",
+                    "서양식 목조 건물입니다.",
+                    "",
+                    "이곳에서는 니시오키타마 군의 의회가 열렸습니다.",
+                    "이후에는 오키타마 직물동업조합 사무소로 사용되며",
+                    "지역 산업의 역사와 이어졌습니다.",
+                    "",
+                    "이 화면에서는 현재 풍경 속에서 건물의 위치와",
+                    "외관을 확인할 수 있습니다."
+                ].join("\n")
+            },
+            "2nd": {
+                Japanese: [
+                    "2代目旧西置賜郡会議事堂",
+                    "",
+                    "2代目旧西置賜郡会議事堂は、明治44年10月に",
+                    "郡役所の北側へ新築された議事堂です。",
+                    "",
+                    "郡政の中心施設として使われました。",
+                    "郡政廃止後は、教育会館や図書館として再利用され、",
+                    "学びと文化の場として受け継がれました。",
+                    "",
+                    "この表示では、建物の位置や外観を",
+                    "現在の風景の中で確認できます。"
+                ].join("\n"),
+                English: [
+                    "Second Former Nishiokitama District Assembly Hall",
+                    "",
+                    "The second Nishiokitama District Assembly Hall was newly built",
+                    "in October 1911 on the north side of the district office.",
+                    "",
+                    "It served as a central facility for district administration.",
+                    "After the district system was abolished, the building was reused",
+                    "as an education hall and a library.",
+                    "",
+                    "This display lets you compare its historical appearance",
+                    "with the present landscape."
+                ].join("\n"),
+                Chinese: [
+                    "第二代旧西置赐郡会议事堂",
+                    "",
+                    "第二代旧西置赐郡会议事堂于1911年10月",
+                    "在郡役所北侧新建。",
+                    "",
+                    "它曾是郡政运作的重要设施。",
+                    "郡制废除后，这座建筑又被改作教育会馆和图书馆。",
+                    "",
+                    "此画面可帮助您在当前风景中确认这座建筑的",
+                    "位置与外观。"
+                ].join("\n"),
+                Korean: [
+                    "2대 구 니시오키타마 군회의사당",
+                    "",
+                    "2대 니시오키타마 군회의사당은 1911년 10월",
+                    "군청 북쪽에 새로 지어진 건물입니다.",
+                    "",
+                    "이 건물은 군 행정의 중심 시설로 사용되었습니다.",
+                    "군제가 폐지된 뒤에는 교육회관과 도서관으로",
+                    "다시 활용되었습니다.",
+                    "",
+                    "이 화면에서는 현재 풍경 속에서 건물의 위치와",
+                    "외관을 확인할 수 있습니다."
+                ].join("\n")
+            }
+        };
+
+        let userLoc = null;
+        let currentRotation = 0;
+        let currentHeight = 0;
+        let currentScale = 0.5;
+        let currentAudio = null;
+        let currentLang = "Japanese";
+        let currentModelKey = "all";
+        let lockedAnchorTarget = null;
+        let lockedAnchorType = null;
+        let deviceHeading = null;
+        let orientationPermissionTried = false;
+        let uiVisible = true;
+
+        const gpsAnchor = document.getElementById("gps-anchor");
+        const contentRoot = document.getElementById("content-root");
+        const model = document.getElementById("main-model");
+        const infoPanelRoot = document.getElementById("info-panel-root");
+        const statusBar = document.getElementById("status-bar");
+        const sceneEl = document.querySelector("a-scene");
+        const cameraEl = document.getElementById("camera");
+        const uiToggleButton = document.getElementById("ui-toggle");
+
+        function escapeCanvasText(text) {
+            return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+        }
+
+        function updateStatus(message) {
+            statusBar.innerText = message;
+        }
+
+        function placeLockedAnchor(target, type, message) {
+            if (!target) {
+                return;
+            }
+
+            lockedAnchorTarget = { lat: target.lat, lon: target.lon };
+            lockedAnchorType = type;
+
+            gpsAnchor.removeAttribute("gps-new-entity-place");
+
+            requestAnimationFrame(() => {
+                gpsAnchor.setAttribute("gps-new-entity-place", {
+                    latitude: lockedAnchorTarget.lat,
+                    longitude: lockedAnchorTarget.lon
+                });
+            });
+
+            document.querySelectorAll(".loc-btn").forEach(button => button.classList.remove("active-btn"));
+            const activeButton = document.getElementById("btn-" + type);
+            if (activeButton) {
+                activeButton.classList.add("active-btn");
+            }
+
+            updateStatus(message);
+        }
+
+        AFRAME.registerComponent("face-camera", {
+            tick: function () {
+                const cam = document.getElementById("camera");
+                if (!cam || !cam.object3D) {
+                    return;
+                }
+
+                const myPos = new THREE.Vector3();
+                const camPos = new THREE.Vector3();
+
+                this.el.object3D.getWorldPosition(myPos);
+                cam.object3D.getWorldPosition(camPos);
+
+                const dx = camPos.x - myPos.x;
+                const dz = camPos.z - myPos.z;
+                const yaw = Math.atan2(dx, dz) * 180 / Math.PI;
+
+                this.el.setAttribute("rotation", `0 ${yaw} 0`);
+            }
+        });
 
         AFRAME.registerComponent("scrolling-info-panel", {
             init: function () {
-                this.canvas = document.createElement("canvas"); this.canvas.width = 1024; this.canvas.height = 512;
-                this.ctx = this.canvas.getContext("2d"); this.texture = new THREE.CanvasTexture(this.canvas);
-                this.scrollY = 550; this.scrollSpeed = 45; this.lines = []; this.el.setAttribute("material", "src", this.canvas);
+                this.canvas = document.createElement("canvas");
+                this.canvas.width = 1024;
+                this.canvas.height = 640;
+                this.ctx = this.canvas.getContext("2d");
+
+                this.texture = new THREE.CanvasTexture(this.canvas);
+                this.texture.minFilter = THREE.LinearFilter;
+                this.texture.magFilter = THREE.LinearFilter;
+                this.texture.needsUpdate = true;
+
+                this.scrollY = this.canvas.height + 40;
+                this.scrollSpeed = 28;
+                this.lastTime = performance.now();
+                this.padding = 56;
+                this.lineHeight = 40;
+                this.font = "bold 30px sans-serif";
+                this.text = "";
+                this.textHeight = 0;
+                this.visibleUntil = 0;
+                this.isPlaying = false;
+
+                this.el.setAttribute("material", "src", this.canvas);
+                this.el.setAttribute("material", "transparent", true);
+                this.el.setAttribute("material", "alphaTest", 0.01);
+                this.draw();
             },
-            updateText: function (text) {
-                this.ctx.font = "bold 32px sans-serif"; this.lines = text.split("\n"); this.scrollY = 520;
+
+            updateText: function (newText) {
+                this.text = escapeCanvasText(newText);
+                this.lines = this.wrapText(this.text, this.canvas.width - this.padding * 2);
+                this.textHeight = this.lines.length * this.lineHeight;
+                this.scrollY = this.canvas.height + 20;
+                this.isPlaying = false;
+                this.draw();
             },
-            tick: function (t, dt) {
-                if (!infoPanelRoot.getAttribute("visible")) return;
-                this.scrollY -= this.scrollSpeed * (dt / 1000);
-                this.ctx.fillStyle = "#10263b"; this.ctx.fillRect(0, 0, 1024, 512);
-                this.ctx.fillStyle = "white"; this.ctx.textAlign = "center";
-                this.lines.forEach((l, i) => this.ctx.fillText(l, 512, this.scrollY + i * 45));
+
+            play: function (newText) {
+                this.updateText(newText);
+                this.isPlaying = true;
+                infoPanelRoot.setAttribute("visible", true);
+                const scrollDurationMs = ((this.canvas.height + this.textHeight + 60) / this.scrollSpeed) * 1000;
+                this.visibleUntil = performance.now() + scrollDurationMs + 4000;
+            },
+
+            hide: function () {
+                this.isPlaying = false;
+                this.visibleUntil = 0;
+                infoPanelRoot.setAttribute("visible", false);
+            },
+
+            wrapText: function (text, maxWidth) {
+                const ctx = this.ctx;
+                ctx.font = this.font;
+
+                const rawLines = text.split("\n");
+                const output = [];
+
+                rawLines.forEach(line => {
+                    if (line.trim() === "") {
+                        output.push("");
+                        return;
+                    }
+
+                    let buffer = "";
+                    for (const ch of line) {
+                        const test = buffer + ch;
+                        if (ctx.measureText(test).width > maxWidth && buffer !== "") {
+                            output.push(buffer);
+                            buffer = ch;
+                        } else {
+                            buffer = test;
+                        }
+                    }
+
+                    if (buffer !== "") {
+                        output.push(buffer);
+                    }
+                });
+
+                return output;
+            },
+
+            tick: function (time) {
+                const delta = Math.min((time - this.lastTime) / 1000, 0.05);
+                this.lastTime = time;
+                if (this.isPlaying) {
+                    this.scrollY -= this.scrollSpeed * delta;
+                    if (time >= this.visibleUntil) {
+                        this.hide();
+                        return;
+                    }
+                }
+
+                this.draw();
+            },
+
+            draw: function () {
+                const ctx = this.ctx;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+
+                ctx.clearRect(0, 0, w, h);
+
+                const panelGrad = ctx.createLinearGradient(0, 0, 0, h);
+                panelGrad.addColorStop(0, "rgba(12, 25, 42, 0.86)");
+                panelGrad.addColorStop(1, "rgba(18, 53, 78, 0.72)");
+                ctx.fillStyle = panelGrad;
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.strokeStyle = "rgba(220, 240, 255, 0.60)";
+                ctx.lineWidth = 6;
+                ctx.strokeRect(10, 10, w - 20, h - 20);
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(this.padding, 40, w - this.padding * 2, h - 80);
+                ctx.clip();
+
+                ctx.font = this.font;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "top";
+
+                let y = this.scrollY;
+                for (let i = 0; i < this.lines.length; i++) {
+                    ctx.fillStyle = "rgba(255,255,255,0.96)";
+                    ctx.fillText(this.lines[i], w / 2, y);
+                    y += this.lineHeight;
+                }
+
+                ctx.restore();
+
+                const fadeTop = ctx.createLinearGradient(0, 0, 0, 72);
+                fadeTop.addColorStop(0, "rgba(16, 38, 59, 1)");
+                fadeTop.addColorStop(1, "rgba(16, 38, 59, 0)");
+                ctx.fillStyle = fadeTop;
+                ctx.fillRect(0, 0, w, 72);
+
+                const fadeBottom = ctx.createLinearGradient(0, h - 72, 0, h);
+                fadeBottom.addColorStop(0, "rgba(16, 38, 59, 0)");
+                fadeBottom.addColorStop(1, "rgba(16, 38, 59, 1)");
+                ctx.fillStyle = fadeBottom;
+                ctx.fillRect(0, h - 72, w, 72);
+
                 this.texture.needsUpdate = true;
             }
         });
 
-        function toggleUi() {
-            const body = document.body;
-            body.classList.toggle("ui-hidden");
-            document.getElementById("ui-toggle").innerText = body.classList.contains("ui-hidden") ? "UI ON" : "UI OFF";
+        function getInfoPanelComponent() {
+            const panel = document.getElementById("info-panel");
+            return panel && panel.components ? panel.components["scrolling-info-panel"] : null;
         }
 
-        function setLang(l) { currentLang = l; document.querySelectorAll(".top-center button").forEach(b => b.classList.toggle("active-btn", b.id.includes(l))); }
-        function switchModel(k) { model.setAttribute("gltf-model", appData[k]); document.querySelectorAll(".left-menu button[id^='m-']").forEach(b => b.classList.remove("active-btn")); const btn = document.getElementById("m-"+k); if(btn) btn.classList.add("active-btn"); }
-        function adjustRotation(d) { currentRotation += d; model.setAttribute("rotation", `0 ${currentRotation} 0`); }
-        function adjustScale(f) { currentScale *= f; updateTransform(); }
-        function adjustHeight(d) { currentHeight += d; updateTransform(); }
-        function updateTransform() { contentRoot.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`); contentRoot.setAttribute('position', `0 ${currentHeight} 0`); }
-        
-        function playAudio(key) {
-            stopAllAudio();
-            currentAudio = new Audio(`audio/${audioFiles[key]}${currentLang}.wav`);
-            currentAudio.play().catch(() => statusBar.innerText = "音声エラー");
-            const panel = document.getElementById("info-panel").components["scrolling-info-panel"];
-            panel.updateText("解説を再生中...\n音声に合わせてテキストが流れます。");
-            infoPanelRoot.setAttribute("visible", true);
+        function updateInfoPanelLanguage() {
+            const panelComp = getInfoPanelComponent();
+            if (panelComp) {
+                panelComp.updateText(getCurrentDescription());
+            }
         }
-        function stopAllAudio() { if (currentAudio) { currentAudio.pause(); currentAudio = null; } infoPanelRoot.setAttribute("visible", false); }
+
+        function getCurrentDescription() {
+            const modelDescriptions = descriptions[currentModelKey] || descriptions.all;
+            return modelDescriptions[currentLang] || modelDescriptions.Japanese || "";
+        }
+
+        function showCurrentInfoPanel() {
+            const panelComp = getInfoPanelComponent();
+            if (panelComp) {
+                panelComp.play(getCurrentDescription());
+            }
+        }
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll(".top-center button").forEach(button => button.classList.remove("active-btn"));
+            document.getElementById("lang-" + lang).classList.add("active-btn");
+            showCurrentInfoPanel();
+        }
+
+        function switchModel(key) {
+            currentModelKey = key;
+            model.setAttribute("gltf-model", appData[key]);
+            document.querySelectorAll(".left-menu button:not(.loc-btn):not(.audio-btn)").forEach(button => button.classList.remove("active-btn"));
+            const btn = document.getElementById("m-" + key);
+            if (btn) {
+                btn.classList.add("active-btn");
+            }
+            showCurrentInfoPanel();
+        }
+
+        function adjustRotation(deg) {
+            currentRotation += deg;
+            model.setAttribute("rotation", `0 ${currentRotation} 0`);
+        }
+
+        function adjustScale(factor) {
+            currentScale *= factor;
+            contentRoot.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`);
+        }
+
+        function adjustHeight(delta) {
+            currentHeight += delta;
+            contentRoot.setAttribute("position", `0 ${currentHeight} 0`);
+        }
+
+        function stopAllAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+        }
+
+        function playAudio(key) {
+            currentModelKey = key;
+            stopAllAudio();
+            const fileName = "audio/" + audioFiles[key] + currentLang + ".wav";
+            currentAudio = new Audio(fileName);
+            currentAudio.play().catch(() => {
+                statusBar.innerText = "音声の再生に失敗しました。";
+            });
+            showCurrentInfoPanel();
+        }
+
+        function toggleUi() {
+            uiVisible = !uiVisible;
+            document.body.classList.toggle("ui-hidden", !uiVisible);
+            uiToggleButton.textContent = uiVisible ? "UI OFF" : "UI ON";
+        }
+
+        function degreesToRadians(deg) {
+            return deg * Math.PI / 180;
+        }
+
+        function radiansToDegrees(rad) {
+            return rad * 180 / Math.PI;
+        }
+
+        function destinationPoint(lat, lon, bearingDeg, distanceMeters) {
+            const radius = 6378137;
+            const bearing = degreesToRadians(bearingDeg);
+            const lat1 = degreesToRadians(lat);
+            const lon1 = degreesToRadians(lon);
+            const angularDistance = distanceMeters / radius;
+
+            const lat2 = Math.asin(
+                Math.sin(lat1) * Math.cos(angularDistance) +
+                Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing)
+            );
+
+            const lon2 = lon1 + Math.atan2(
+                Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(lat1),
+                Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2)
+            );
+
+            return {
+                lat: radiansToDegrees(lat2),
+                lon: radiansToDegrees(lon2)
+            };
+        }
+
+        function requestOrientationPermissionIfNeeded() {
+            if (orientationPermissionTried) {
+                return;
+            }
+
+            orientationPermissionTried = true;
+
+            const fn = DeviceOrientationEvent && DeviceOrientationEvent.requestPermission;
+            if (typeof fn === "function") {
+                DeviceOrientationEvent.requestPermission()
+                    .then(state => {
+                        if (state === "granted") {
+                            updateStatus("方位センサーの使用を許可しました。");
+                        } else {
+                            updateStatus("方位センサー未許可のため、現在地配置は北方向基準になります。");
+                        }
+                    })
+                    .catch(() => {
+                        updateStatus("方位センサー許可に失敗しました。");
+                    });
+            }
+        }
+
+        function updateHeading(event) {
+            if (typeof event.webkitCompassHeading === "number") {
+                deviceHeading = event.webkitCompassHeading;
+                return;
+            }
+
+            if (event.absolute === true && typeof event.alpha === "number") {
+                deviceHeading = (360 - event.alpha + 360) % 360;
+            }
+        }
+
+        window.addEventListener("deviceorientationabsolute", updateHeading, true);
+        window.addEventListener("deviceorientation", updateHeading, true);
 
         function setAnchorLocation(type) {
-            let target = (type === 'current' && userLoc) ? { lat: userLoc.lat + 0.00015, lon: userLoc.lon } : locations[type];
-            if (target) {
-                gpsAnchor.setAttribute("gps-entity-place", `latitude: ${target.lat}; longitude: ${target.lon};`);
-                statusBar.innerText = "空間に固定完了。歩いて確認してください。";
-                if (!model.getAttribute("gltf-model")) switchModel("all");
+            requestOrientationPermissionIfNeeded();
+
+            let target = null;
+
+            if (type === "current") {
+                if (!userLoc) {
+                    updateStatus("現在地がまだ取得できていません。");
+                    return;
+                }
+
+                const bearing = typeof deviceHeading === "number" ? deviceHeading : 0;
+                target = destinationPoint(userLoc.lat, userLoc.lon, bearing, 15);
+            } else if (locations[type]) {
+                target = locations[type];
+            }
+
+            if (!target) {
+                return;
+            }
+
+            if (!model.getAttribute("gltf-model")) {
+                switchModel("all");
+            }
+
+            if (type === "current") {
+                if (typeof deviceHeading === "number") {
+                    placeLockedAnchor(target, type, "現在地の前方15mに固定しました。建物はこの座標に固定されます。");
+                } else {
+                    placeLockedAnchor(target, type, "方位未取得のため、現在地の北側15mに固定しました。建物はこの座標に固定されます。");
+                }
+            } else {
+                placeLockedAnchor(target, type, "指定地点に固定しました。建物はこの座標に固定されます。");
             }
         }
 
-        navigator.geolocation.watchPosition(pos => {
-            userLoc = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-            statusBar.innerText = "GPS OK。場所を選択してください。";
-        }, null, { enableHighAccuracy: true });
+        navigator.geolocation.watchPosition(
+            pos => {
+                userLoc = {
+                    lat: pos.coords.latitude,
+                    lon: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy
+                };
 
-        document.addEventListener('click', () => { 
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission();
+                if (statusBar.innerText === "GPSを取得中...") {
+                    updateStatus("GPS OK。固定場所を選んでください。");
+                }
+            },
+            err => {
+                updateStatus("GPS取得に失敗しました: " + err.message);
+            },
+            {
+                enableHighAccuracy: true,
+                maximumAge: 0,
+                timeout: 15000
             }
-        }, {once: true});
+        );
+
+        sceneEl.addEventListener("loaded", () => {
+            updateInfoPanelLanguage();
+        });
+
+        cameraEl.addEventListener("gps-camera-update-position", event => {
+            const accuracy = event.detail && event.detail.position ? event.detail.position.accuracy : null;
+            if (typeof accuracy === "number" && accuracy > 50) {
+                updateStatus(`GPS精度が低いです (${Math.round(accuracy)}m)。空が見える場所で再確認してください。`);
+            }
+        });
+
+        model.addEventListener("model-loaded", () => {
+            if (lockedAnchorTarget) {
+                placeLockedAnchor(
+                    lockedAnchorTarget,
+                    lockedAnchorType || "current",
+                    "モデルを読み込みました。固定座標へ再配置しました。"
+                );
+            }
+        });
     </script>
 </body>
 </html>
