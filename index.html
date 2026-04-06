@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>文教の森 AR - LocAR版</title>
+    <title>譁・蕗縺ｮ譽ｮ AR - LocAR迚・/title>
     <style>
         body {
             margin: 0;
@@ -192,63 +192,63 @@
 
     <div id="ui-layer">
         <div class="top-center clickable ui-group">
-            <button id="lang-Japanese" class="active-btn" onclick="setLang('Japanese')">日本語</button>
+            <button id="lang-Japanese" class="active-btn" onclick="setLang('Japanese')">譌･譛ｬ隱・/button>
             <button id="lang-English" onclick="setLang('English')">English</button>
-            <button id="lang-Chinese" onclick="setLang('Chinese')">中文</button>
-            <button id="lang-Korean" onclick="setLang('Korean')">한국어</button>
+            <button id="lang-Chinese" onclick="setLang('Chinese')">荳ｭ譁・/button>
+            <button id="lang-Korean" onclick="setLang('Korean')">﨑懋ｵｭ・ｴ</button>
             <div class="diag-row">
-                <button style="background:#e91e63; color:white;" onclick="startAr()">AR開始</button>
-                <button style="background:#3f51b5; color:white;" onclick="showDiagnostics()">診断</button>
+                <button style="background:#e91e63; color:white;" onclick="startAr()">AR髢句ｧ・/button>
+                <button style="background:#3f51b5; color:white;" onclick="showDiagnostics()">險ｺ譁ｭ</button>
             </div>
         </div>
 
         <div class="left-menu menu clickable ui-group">
-            <div class="label">建物を固定する場所</div>
-            <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">① 現在地の15m先</button>
-            <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">② タスホテル</button>
-            <button id="btn-office" class="loc-btn" onclick="setAnchorLocation('office')">③ 旧西置賜郡役所</button>
+            <div class="label">蟒ｺ迚ｩ繧貞崋螳壹☆繧句ｴ謇</div>
+            <button id="btn-current" class="loc-btn" onclick="setAnchorLocation('current')">竭 迴ｾ蝨ｨ蝨ｰ縺ｮ15m蜈・/button>
+            <button id="btn-tas" class="loc-btn" onclick="setAnchorLocation('tas')">竭｡ 繧ｿ繧ｹ繝帙ユ繝ｫ</button>
+            <button id="btn-office" class="loc-btn" onclick="setAnchorLocation('office')">竭｢ 譌ｧ隘ｿ鄂ｮ雉憺Γ蠖ｹ謇</button>
 
-            <div class="label" style="margin-top:10px;">表示モデル / 音声解説</div>
-            <button id="m-all" onclick="switchModel('all')">全体(all)</button>
+            <div class="label" style="margin-top:10px;">陦ｨ遉ｺ繝｢繝・Ν / 髻ｳ螢ｰ隗｣隱ｬ</div>
+            <button id="m-all" onclick="switchModel('all')">蜈ｨ菴・all)</button>
             <div class="model-row">
-                <button id="m-kozakura" onclick="switchModel('kozakura')">旧西置賜郡役所</button>
-                <button style="background:#ff9800; color:white;" onclick="playAudio('kozakura')">説明</button>
+                <button id="m-kozakura" onclick="switchModel('kozakura')">譌ｧ隘ｿ鄂ｮ雉憺Γ蠖ｹ謇</button>
+                <button style="background:#ff9800; color:white;" onclick="playAudio('kozakura')">隱ｬ譏・/button>
             </div>
             <div class="model-row">
-                <button id="m-1st" onclick="switchModel('1st')">初代</button>
-                <button style="background:#ff9800; color:white;" onclick="playAudio('1st')">説明</button>
+                <button id="m-1st" onclick="switchModel('1st')">蛻昜ｻ｣</button>
+                <button style="background:#ff9800; color:white;" onclick="playAudio('1st')">隱ｬ譏・/button>
             </div>
             <div class="model-row">
-                <button id="m-2nd" onclick="switchModel('2nd')">二代目</button>
-                <button style="background:#ff9800; color:white;" onclick="playAudio('2nd')">説明</button>
+                <button id="m-2nd" onclick="switchModel('2nd')">莠御ｻ｣逶ｮ</button>
+                <button style="background:#ff9800; color:white;" onclick="playAudio('2nd')">隱ｬ譏・/button>
             </div>
-            <button onclick="stopAllAudio()" style="background:#607d8b; color:white; margin-top:4px;">音声停止</button>
+            <button onclick="stopAllAudio()" style="background:#607d8b; color:white; margin-top:4px;">髻ｳ螢ｰ蛛懈ｭ｢</button>
         </div>
 
         <div class="right-menu menu clickable ui-group">
-            <div class="label">建物を回転</div>
+            <div class="label">蟒ｺ迚ｩ繧貞屓霆｢</div>
             <div style="display:flex; gap:4px; width:100%;">
-                <button class="rotate-btn" onclick="adjustRotation(-30)">左回</button>
-                <button class="rotate-btn" onclick="adjustRotation(30)">右回</button>
+                <button class="rotate-btn" onclick="adjustRotation(-30)">蟾ｦ蝗・/button>
+                <button class="rotate-btn" onclick="adjustRotation(30)">蜿ｳ蝗・/button>
             </div>
 
-            <div class="label" style="margin-top:10px;">高度 / サイズ</div>
+            <div class="label" style="margin-top:10px;">鬮伜ｺｦ / 繧ｵ繧､繧ｺ</div>
             <div style="display:flex; gap:4px; width:100%;">
-                <button style="flex:1" onclick="adjustHeight(0.5)">上昇</button>
-                <button style="flex:1" onclick="adjustHeight(-0.5)">下降</button>
+                <button style="flex:1" onclick="adjustHeight(0.5)">荳頑・</button>
+                <button style="flex:1" onclick="adjustHeight(-0.5)">荳矩剄</button>
             </div>
             <div style="display:flex; gap:4px; width:100%;">
-                <button style="flex:1" onclick="adjustScale(1.2)">拡大</button>
-                <button style="flex:1" onclick="adjustScale(0.8)">縮小</button>
+                <button style="flex:1" onclick="adjustScale(1.2)">諡｡螟ｧ</button>
+                <button style="flex:1" onclick="adjustScale(0.8)">邵ｮ蟆・/button>
             </div>
 
-            <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">再起動</button>
+            <button onclick="location.reload()" style="background:#f44336; color:white; margin-top:10px; width:100%;">蜀崎ｵｷ蜍・/button>
         </div>
 
         <div id="text-panel" class="ui-group">
             <div id="text-scroll"></div>
         </div>
-        <div id="status-bar" class="ui-group">AR開始を押してください。</div>
+        <div id="status-bar" class="ui-group">AR髢句ｧ九ｒ謚ｼ縺励※縺上□縺輔＞縲・/div>
     </div>
 
     <script type="module">
@@ -272,28 +272,28 @@
 
         const descriptions = {
             all: {
-                Japanese: "文教の森 AR\n\n旧西置賜郡役所と会議事堂を含む建物群の全体像を、現在の風景の中に重ねて確認するための表示です。",
+                Japanese: "譁・蕗縺ｮ譽ｮ AR\n\n譌ｧ隘ｿ鄂ｮ雉憺Γ蠖ｹ謇縺ｨ莨夊ｭｰ莠句ゅｒ蜷ｫ繧蟒ｺ迚ｩ鄒､縺ｮ蜈ｨ菴灘ワ繧偵∫樟蝨ｨ縺ｮ鬚ｨ譎ｯ縺ｮ荳ｭ縺ｫ驥阪・縺ｦ遒ｺ隱阪☆繧九◆繧√・陦ｨ遉ｺ縺ｧ縺吶・,
                 English: "Bunkyo no Mori AR\n\nThis display overlays the former Nishiokitama District Office and assembly halls onto the present landscape.",
-                Chinese: "文教之森 AR\n\n此画面将旧西置赐郡役所与会議事堂建筑群叠加到当前风景中进行展示。",
-                Korean: "문교의 숲 AR\n\n이 화면은 구 니시오키타마 군역소와 군회의사당 건물군을 현재 풍경 위에 겹쳐 보여 줍니다."
+                Chinese: "譁・蕗荵区｣ｮ AR\n\n豁､逕ｻ髱｢蟆・立隘ｿ鄂ｮ襍宣Γ蠖ｹ謇荳惹ｼ夊ｭｰ莠句ょｻｺ遲醍ｾ､蜿蜉蛻ｰ蠖灘燕鬟取勹荳ｭ霑幄｡悟ｱ慕､ｺ縲・,
+                Korean: "・ｸ・川攪 ・ｲ AR\n\n・ｴ 嶹罷ｩｴ・ ・ｬ ・溢亨・､墲､夋・・・ｰ・ｭ・護凰 ・ｰ巐護攪・ｬ・ｹ ・ｴ・ｼ・ｰ・・嶸・椪 峵碕ｲｽ ・・乱 ・ｹ・・・ｴ・ｬ ・鷺笈・､."
             },
             kozakura: {
-                Japanese: "旧西置賜郡役所\n\n旧西置賜郡役所は、明治11年に建てられた擬洋風建築です。現在は小桜館として保存・活用されています。",
+                Japanese: "譌ｧ隘ｿ鄂ｮ雉憺Γ蠖ｹ謇\n\n譌ｧ隘ｿ鄂ｮ雉憺Γ蠖ｹ謇縺ｯ縲∵・豐ｻ11蟷ｴ縺ｫ蟒ｺ縺ｦ繧峨ｌ縺滓闘豢矩｢ｨ蟒ｺ遽峨〒縺吶ら樟蝨ｨ縺ｯ蟆乗｡憺､ｨ縺ｨ縺励※菫晏ｭ倥・豢ｻ逕ｨ縺輔ｌ縺ｦ縺・∪縺吶・,
                 English: "Former Nishiokitama District Office\n\nThe former Nishiokitama District Office was built in 1878 and is preserved today as Kozakura-kan.",
-                Chinese: "旧西置赐郡役所\n\n旧西置赐郡役所建于1878年，是具有代表性的拟洋风建筑，现以小樱馆之名保存利用。",
-                Korean: "구 니시오키타마 군역소\n\n구 니시오키타마 군역소는 1878년에 세워진 의양풍 건축으로, 현재 고자쿠라칸으로 보존 활용되고 있습니다."
+                Chinese: "譌ｧ隘ｿ鄂ｮ襍宣Γ蠖ｹ謇\n\n譌ｧ隘ｿ鄂ｮ襍宣Γ蠖ｹ謇蟒ｺ莠・878蟷ｴ・梧弍蜈ｷ譛我ｻ｣陦ｨ諤ｧ逧・供豢矩｣主ｻｺ遲托ｼ檎鴫莉･蟆乗ｨｱ鬥・ｹ句錐菫晏ｭ伜茜逕ｨ縲・,
+                Korean: "・ｬ ・溢亨・､墲､夋・・・ｰ・ｭ・圭n\n・ｬ ・溢亨・､墲､夋・・・ｰ・ｭ・誤株 1878・・乱 ・ｸ・護ｧ・・們桝峵・・ｴ・菩愍・・ 嶸・椪 ・・川ｿ・ｼ・ｸ・ｼ・・・ｴ・ｴ 嶹懍圸・俾ｳ ・溢慣・壱共."
             },
             "1st": {
-                Japanese: "初代旧西置賜郡会議事堂\n\n初代旧西置賜郡会議事堂は、明治20年に建てられた洋風木造の議事堂です。",
+                Japanese: "蛻昜ｻ｣譌ｧ隘ｿ鄂ｮ雉憺Γ莨夊ｭｰ莠句・n\n蛻昜ｻ｣譌ｧ隘ｿ鄂ｮ雉憺Γ莨夊ｭｰ莠句ゅ・縲∵・豐ｻ20蟷ｴ縺ｫ蟒ｺ縺ｦ繧峨ｌ縺滓ｴ矩｢ｨ譛ｨ騾縺ｮ隴ｰ莠句ゅ〒縺吶・,
                 English: "First Former Nishiokitama District Assembly Hall\n\nThe first Nishiokitama District Assembly Hall was built in 1887 as a Western-style wooden hall.",
-                Chinese: "第一代旧西置赐郡会议事堂\n\n第一代旧西置赐郡会议事堂建于1887年，是一座西式木造议事堂。",
-                Korean: "초대 구 니시오키타마 군회의사당\n\n초대 니시오키타마 군회의사당은 1887년에 세워진 서양식 목조 건물입니다."
+                Chinese: "隨ｬ荳莉｣譌ｧ隘ｿ鄂ｮ襍宣Γ莨夊ｮｮ莠句・n\n隨ｬ荳莉｣譌ｧ隘ｿ鄂ｮ襍宣Γ莨夊ｮｮ莠句ょｻｺ莠・887蟷ｴ・梧弍荳蠎ｧ隘ｿ蠑乗惠騾隶ｮ莠句ゅ・,
+                Korean: "・壱劇 ・ｬ ・溢亨・､墲､夋・・・ｰ巐護攪・ｬ・ｹ\n\n・壱劇 ・溢亨・､墲､夋・・・ｰ巐護攪・ｬ・ｹ・ 1887・・乱 ・ｸ・護ｧ・・懍桝・・・ｩ・ｰ ・ｴ・ｼ・・笈・､."
             },
             "2nd": {
-                Japanese: "2代目旧西置賜郡会議事堂\n\n2代目旧西置賜郡会議事堂は、明治44年10月に郡役所の北側へ新築された議事堂です。",
+                Japanese: "2莉｣逶ｮ譌ｧ隘ｿ鄂ｮ雉憺Γ莨夊ｭｰ莠句・n\n2莉｣逶ｮ譌ｧ隘ｿ鄂ｮ雉憺Γ莨夊ｭｰ莠句ゅ・縲∵・豐ｻ44蟷ｴ10譛医↓驛｡蠖ｹ謇縺ｮ蛹怜・縺ｸ譁ｰ遽峨＆繧後◆隴ｰ莠句ゅ〒縺吶・,
                 English: "Second Former Nishiokitama District Assembly Hall\n\nThe second Nishiokitama District Assembly Hall was newly built in October 1911.",
-                Chinese: "第二代旧西置赐郡会议事堂\n\n第二代旧西置赐郡会议事堂于1911年10月在郡役所北侧新建。",
-                Korean: "2대 구 니시오키타마 군회의사당\n\n2대 니시오키타마 군회의사당은 1911년 10월 군청 북쪽에 새로 지어진 건물입니다."
+                Chinese: "隨ｬ莠御ｻ｣譌ｧ隘ｿ鄂ｮ襍宣Γ莨夊ｮｮ莠句・n\n隨ｬ莠御ｻ｣譌ｧ隘ｿ鄂ｮ襍宣Γ莨夊ｮｮ莠句ゆｺ・911蟷ｴ10譛亥惠驛｡蠖ｹ謇蛹嶺ｾｧ譁ｰ蟒ｺ縲・,
+                Korean: "2・ ・ｬ ・溢亨・､墲､夋・・・ｰ巐護攪・ｬ・ｹ\n\n2・ ・溢亨・､墲､夋・・・ｰ巐護攪・ｬ・ｹ・ 1911・・10・・・ｰ・ｭ ・・ｪｽ・・・壱｡・・・ｴ・・・ｴ・ｼ・・笈・､."
             }
         };
 
@@ -307,6 +307,11 @@
         const textPanel = document.getElementById("text-panel");
         const textScroll = document.getElementById("text-scroll");
         const uiToggleButton = document.getElementById("ui-toggle");
+        const LOG_ENDPOINT = "https://script.google.com/macros/s/AKfycbwgwKmn182INw30dpcm3Yaet4ZXZKyPzLpY1qOAX9kvENckPjZH4mBZg_E4aQ1w-qFg/exec";
+        const SPOT_ID = "gunkaigijido";
+        const USER_ID_KEY = "gunkaigijido_user_id_v1";
+        const SESSION_ID_KEY = "gunkaigijido_session_id_v1";
+        const HEARTBEAT_MS = 15000;
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100000);
@@ -350,6 +355,13 @@
         let manualGamma = 0;
         let screenOrientationRad = 0;
         let panelHideTimer = null;
+        let sessionId = null;
+        let userId = null;
+        let enteredAtIso = null;
+        let lastSeenAtIso = null;
+        let heartbeatTimer = null;
+        let loggingEnabled = false;
+        let lastStatusMessage = "";
         const modelCache = new Map();
         const zee = new THREE.Vector3(0, 0, 1);
         const euler = new THREE.Euler();
@@ -358,12 +370,101 @@
 
         function setStatus(message) {
             statusBar.innerText = message;
+            lastStatusMessage = message;
+        }
+
+        function getOrCreateStorageId(key) {
+            let value = localStorage.getItem(key);
+            if (!value) {
+                value = crypto.randomUUID();
+                localStorage.setItem(key, value);
+            }
+            return value;
+        }
+
+        function isoNow() {
+            return new Date().toISOString();
+        }
+
+        function durationSec(fromIso, toIso) {
+            if (!fromIso || !toIso) {
+                return "";
+            }
+            return Math.max(0, Math.round((Date.parse(toIso) - Date.parse(fromIso)) / 1000));
+        }
+
+        function buildLogPayload(eventType, note = "") {
+            const nowIso = isoNow();
+            lastSeenAtIso = nowIso;
+            return {
+                event_type: eventType,
+                session_id: sessionId,
+                user_id: userId,
+                spot_id: SPOT_ID,
+                page_url: location.href,
+                lang: currentLang,
+                entered_at: enteredAtIso,
+                left_at: eventType === "page_leave" ? nowIso : "",
+                last_seen_at: nowIso,
+                duration_sec: durationSec(enteredAtIso, nowIso),
+                visibility_state: document.visibilityState,
+                user_agent: navigator.userAgent,
+                note
+            };
+        }
+
+        function sendLog(eventType, note = "") {
+            if (!loggingEnabled || !LOG_ENDPOINT) {
+                return;
+            }
+
+            const payload = buildLogPayload(eventType, note);
+            const body = JSON.stringify(payload);
+
+            try {
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([body], { type: "application/json" });
+                    if (navigator.sendBeacon(LOG_ENDPOINT, blob)) {
+                        return;
+                    }
+                }
+            } catch (error) {
+                console.warn("sendBeacon failed", error);
+            }
+
+            fetch(LOG_ENDPOINT, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body,
+                mode: "cors",
+                keepalive: true
+            }).catch(error => {
+                console.warn("log post failed", error);
+            });
+        }
+
+        function startLogging() {
+            userId = getOrCreateStorageId(USER_ID_KEY);
+            sessionId = crypto.randomUUID();
+            sessionStorage.setItem(SESSION_ID_KEY, sessionId);
+            enteredAtIso = isoNow();
+            lastSeenAtIso = enteredAtIso;
+            loggingEnabled = true;
+            sendLog("page_enter", "page initialized");
+
+            if (heartbeatTimer) {
+                clearInterval(heartbeatTimer);
+            }
+            heartbeatTimer = setInterval(() => {
+                sendLog("heartbeat", `status=${lastStatusMessage}`);
+            }, HEARTBEAT_MS);
         }
 
         function toggleUi() {
             uiVisible = !uiVisible;
             document.body.classList.toggle("ui-hidden", !uiVisible);
             uiToggleButton.textContent = uiVisible ? "UI OFF" : "UI ON";
+            sendLog("ui_toggle", `visible=${uiVisible}`);
         }
         window.toggleUi = toggleUi;
 
@@ -516,7 +617,7 @@
                 btn.classList.add("active-btn");
             }
 
-            setStatus(`モデルを読み込んでいます: ${key}`);
+            setStatus(`繝｢繝・Ν繧定ｪｭ縺ｿ霎ｼ繧薙〒縺・∪縺・ ${key}`);
             try {
                 const nextObject = await loadModelObject(key);
                 if (currentModelObject) {
@@ -526,9 +627,11 @@
                 modelHolder.add(currentModelObject);
                 applyModelTransform();
                 showTextPanel(getCurrentDescription());
-                setStatus(`モデルを表示しました: ${key}`);
+                setStatus(`繝｢繝・Ν繧定｡ｨ遉ｺ縺励∪縺励◆: ${key}`);
+                sendLog("model_switch", `model=${key}`);
             } catch (error) {
-                setStatus(`モデル読み込みに失敗しました: ${error.message || error}`);
+                setStatus(`繝｢繝・Ν隱ｭ縺ｿ霎ｼ縺ｿ縺ｫ螟ｱ謨励＠縺ｾ縺励◆: ${error.message || error}`);
+                sendLog("model_error", `model=${key} error=${error.message || error}`);
             }
         }
         window.switchModel = switchModel;
@@ -538,6 +641,7 @@
             document.querySelectorAll(".top-center button[id^='lang-']").forEach(button => button.classList.remove("active-btn"));
             document.getElementById("lang-" + lang).classList.add("active-btn");
             showTextPanel(getCurrentDescription());
+            sendLog("lang_change", `lang=${lang}`);
         }
         window.setLang = setLang;
 
@@ -574,9 +678,11 @@
             const fileName = `audio/${audioFiles[key]}${currentLang}.wav`;
             currentAudio = new Audio(fileName);
             currentAudio.play().catch(() => {
-                setStatus("音声の再生に失敗しました。");
+                setStatus("髻ｳ螢ｰ縺ｮ蜀咲函縺ｫ螟ｱ謨励＠縺ｾ縺励◆縲・);
+                sendLog("audio_error", `file=${fileName}`);
             });
             showTextPanel(getCurrentDescription());
+            sendLog("audio_play", `key=${key} file=${fileName}`);
         }
         window.playAudio = playAudio;
 
@@ -600,6 +706,7 @@
             }
 
             setStatus(message);
+            sendLog("anchor_lock", `type=${type} lat=${target.lat} lon=${target.lon}`);
         }
 
         function resolveAnchorTarget(type) {
@@ -616,14 +723,14 @@
         function setAnchorLocation(type) {
             const target = resolveAnchorTarget(type);
             if (!target) {
-                setStatus("現在地がまだ取得できていません。AR開始後、GPS取得を待ってください。");
+                setStatus("迴ｾ蝨ｨ蝨ｰ縺後∪縺蜿門ｾ励〒縺阪※縺・∪縺帙ｓ縲・R髢句ｧ句ｾ後；PS蜿門ｾ励ｒ蠕・▲縺ｦ縺上□縺輔＞縲・);
                 return;
             }
 
             if (type === "current") {
-                lockAnchor(target, type, "現在地の前方15mに固定しました。以後はこのGPS座標へ固定します。");
+                lockAnchor(target, type, "迴ｾ蝨ｨ蝨ｰ縺ｮ蜑肴婿15m縺ｫ蝗ｺ螳壹＠縺ｾ縺励◆縲ゆｻ･蠕後・縺薙・GPS蠎ｧ讓吶∈蝗ｺ螳壹＠縺ｾ縺吶・);
             } else {
-                lockAnchor(target, type, "指定地点に固定しました。以後はこのGPS座標へ固定します。");
+                lockAnchor(target, type, "謖・ｮ壼慍轤ｹ縺ｫ蝗ｺ螳壹＠縺ｾ縺励◆縲ゆｻ･蠕後・縺薙・GPS蠎ｧ讓吶∈蝗ｺ螳壹＠縺ｾ縺吶・);
             }
         }
         window.setAnchorLocation = setAnchorLocation;
@@ -640,24 +747,26 @@
                 lockedAnchorTarget
             };
 
-            setStatus(`診断: secure=${diagnostics.secureContext} / media=${diagnostics.mediaDevices} / geo=${diagnostics.geolocation} / arStarted=${diagnostics.arStarted}`);
+            setStatus(`險ｺ譁ｭ: secure=${diagnostics.secureContext} / media=${diagnostics.mediaDevices} / geo=${diagnostics.geolocation} / arStarted=${diagnostics.arStarted}`);
             console.log("[locar-diagnostics]", diagnostics);
+            sendLog("diagnostics", JSON.stringify(diagnostics));
         }
         window.showDiagnostics = showDiagnostics;
 
         async function startAr() {
             if (arStarted) {
-                setStatus("ARは開始済みです。");
+                setStatus("AR縺ｯ髢句ｧ区ｸ医∩縺ｧ縺吶・);
                 return;
             }
 
             if (!window.isSecureContext) {
-                setStatus("AR開始不可: HTTPS または localhost で開いてください。");
+                setStatus("AR髢句ｧ倶ｸ榊庄: HTTPS 縺ｾ縺溘・ localhost 縺ｧ髢九＞縺ｦ縺上□縺輔＞縲・);
                 return;
             }
 
             try {
-                setStatus("カメラとGPSを初期化しています...");
+                setStatus("繧ｫ繝｡繝ｩ縺ｨGPS繧貞・譛溷喧縺励※縺・∪縺・..");
+                sendLog("ar_start", "initializing camera and gps");
 
                 webcam = new LocAR.Webcam({
                     video: {
@@ -667,11 +776,13 @@
 
                 webcam.on("webcamstarted", event => {
                     scene.background = event.texture;
-                    setStatus("カメラ映像を開始しました。GPSを待っています...");
+                    setStatus("繧ｫ繝｡繝ｩ譏蜒上ｒ髢句ｧ九＠縺ｾ縺励◆縲・PS繧貞ｾ・▲縺ｦ縺・∪縺・..");
+                    sendLog("camera_started", "webcamstarted");
                 });
 
                 webcam.on("webcamerror", error => {
-                    setStatus(`カメラ開始に失敗しました: ${error?.message || "unknown"}`);
+                    setStatus(`繧ｫ繝｡繝ｩ髢句ｧ九↓螟ｱ謨励＠縺ｾ縺励◆: ${error?.message || "unknown"}`);
+                    sendLog("camera_error", error?.message || "unknown");
                 });
 
                 locar = new LocAR.LocationBased(scene, camera);
@@ -688,22 +799,26 @@
                     };
 
                     if (!lockedAnchorTarget) {
-                        setStatus("GPS OK。固定場所を選んでください。");
+                        setStatus("GPS OK縲ょ崋螳壼ｴ謇繧帝∈繧薙〒縺上□縺輔＞縲・);
                     }
+                    sendLog("gps_update", `lat=${userLoc.lat} lon=${userLoc.lon} acc=${userLoc.accuracy}`);
                 });
 
                 locar.on("gpserror", error => {
                     const message = error?.message || error?.detail?.message || "unknown";
-                    setStatus(`GPS取得に失敗しました: ${message}`);
+                    setStatus(`GPS蜿門ｾ励↓螟ｱ謨励＠縺ｾ縺励◆: ${message}`);
+                    sendLog("gps_error", message);
                 });
 
                 deviceControls = new LocAR.DeviceOrientationControls(camera);
                 deviceControls.on("deviceorientationgranted", event => {
                     event.target.connect();
-                    setStatus("方位センサーを許可しました。");
+                    setStatus("譁ｹ菴阪そ繝ｳ繧ｵ繝ｼ繧定ｨｱ蜿ｯ縺励∪縺励◆縲・);
+                    sendLog("orientation_granted", "deviceorientationgranted");
                 });
                 deviceControls.on("deviceorientationerror", error => {
-                    setStatus(`方位センサーに失敗しました: ${error?.message || "unknown"}`);
+                    setStatus(`譁ｹ菴阪そ繝ｳ繧ｵ繝ｼ縺ｫ螟ｱ謨励＠縺ｾ縺励◆: ${error?.message || "unknown"}`);
+                    sendLog("orientation_error", error?.message || "unknown");
                 });
                 deviceControls.on("deviceorientation", event => {
                     if (typeof event?.alpha === "number") {
@@ -716,8 +831,10 @@
                 locar.startGps();
                 arStarted = true;
                 await switchModel("all");
+                sendLog("ar_ready", "ar started successfully");
             } catch (error) {
-                setStatus(`AR開始に失敗しました: ${error.message || error}`);
+                setStatus(`AR髢句ｧ九↓螟ｱ謨励＠縺ｾ縺励◆: ${error.message || error}`);
+                sendLog("ar_error", error.message || String(error));
             }
         }
         window.startAr = startAr;
@@ -745,6 +862,24 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        document.addEventListener("visibilitychange", () => {
+            sendLog("visibility_change", `state=${document.visibilityState}`);
+        });
+
+        window.addEventListener("pagehide", () => {
+            sendLog("page_leave", "pagehide");
+        });
+
+        window.addEventListener("beforeunload", () => {
+            sendLog("page_leave", "beforeunload");
+        });
+
+        startLogging();
+        if (!LOG_ENDPOINT) {
+            console.warn("LOG_ENDPOINT is empty. Set your Apps Script Web App URL to enable Google Sheets logging.");
+        }
     </script>
 </body>
 </html>
+
