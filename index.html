@@ -354,6 +354,11 @@
         let manualBeta = 0;
         let manualGamma = 0;
         let screenOrientationRad = 0;
+        let rawOrientationAlpha = null;
+        let rawOrientationBeta = null;
+        let rawOrientationGamma = null;
+        let rawWebkitCompassHeading = null;
+        let lastOrientationLogAt = 0;
         let panelHideTimer = null;
         let sessionId = null;
         let userId = null;
@@ -371,6 +376,101 @@
         function setStatus(message) {
             statusBar.innerText = message;
             lastStatusMessage = message;
+        }
+
+        function formatNumber(value, digits = 3) {
+            return typeof value === "number" && Number.isFinite(value) ? value.toFixed(digits) : "na";
+        }
+
+        function distanceMetersBetween(lat1, lon1, lat2, lon2) {
+            const radius = 6378137;
+            const dLat = degreesToRadians(lat2 - lat1);
+            const dLon = degreesToRadians(lon2 - lon1);
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(degreesToRadians(lat1)) *
+                Math.cos(degreesToRadians(lat2)) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return radius * c;
+        }
+
+        function bearingBetween(lat1, lon1, lat2, lon2) {
+            const phi1 = degreesToRadians(lat1);
+            const phi2 = degreesToRadians(lat2);
+            const lambda1 = degreesToRadians(lon1);
+            const lambda2 = degreesToRadians(lon2);
+            const y = Math.sin(lambda2 - lambda1) * Math.cos(phi2);
+            const x =
+                Math.cos(phi1) * Math.sin(phi2) -
+                Math.sin(phi1) * Math.cos(phi2) * Math.cos(lambda2 - lambda1);
+            return normalizeDegrees(radiansToDegrees(Math.atan2(y, x)));
+        }
+
+        function buildOrientationSnapshot() {
+            const q = camera.quaternion;
+            let anchorDistance = null;
+            let anchorBearing = null;
+
+            if (userLoc && lockedAnchorTarget) {
+                anchorDistance = distanceMetersBetween(
+                    userLoc.lat,
+                    userLoc.lon,
+                    lockedAnchorTarget.lat,
+                    lockedAnchorTarget.lon
+                );
+                anchorBearing = bearingBetween(
+                    userLoc.lat,
+                    userLoc.lon,
+                    lockedAnchorTarget.lat,
+                    lockedAnchorTarget.lon
+                );
+            }
+
+            return {
+                heading_deg: currentHeading,
+                webkit_heading_deg: rawWebkitCompassHeading,
+                alpha_deg: rawOrientationAlpha,
+                beta_deg: rawOrientationBeta,
+                gamma_deg: rawOrientationGamma,
+                screen_orientation_deg: radiansToDegrees(screenOrientationRad),
+                manual_orientation: useManualOrientation,
+                camera_qx: q.x,
+                camera_qy: q.y,
+                camera_qz: q.z,
+                camera_qw: q.w,
+                user_lat: userLoc?.lat ?? null,
+                user_lon: userLoc?.lon ?? null,
+                anchor_lat: lockedAnchorTarget?.lat ?? null,
+                anchor_lon: lockedAnchorTarget?.lon ?? null,
+                anchor_distance_m: anchorDistance,
+                anchor_bearing_deg: anchorBearing
+            };
+        }
+
+        function buildOrientationNote() {
+            const snapshot = buildOrientationSnapshot();
+            return [
+                `heading=${formatNumber(snapshot.heading_deg, 1)}`,
+                `webkit=${formatNumber(snapshot.webkit_heading_deg, 1)}`,
+                `alpha=${formatNumber(snapshot.alpha_deg, 1)}`,
+                `beta=${formatNumber(snapshot.beta_deg, 1)}`,
+                `gamma=${formatNumber(snapshot.gamma_deg, 1)}`,
+                `screen=${formatNumber(snapshot.screen_orientation_deg, 1)}`,
+                `manual=${snapshot.manual_orientation}`,
+                `dist=${formatNumber(snapshot.anchor_distance_m, 2)}`,
+                `bearing=${formatNumber(snapshot.anchor_bearing_deg, 1)}`,
+                `q=${formatNumber(snapshot.camera_qx)},${formatNumber(snapshot.camera_qy)},${formatNumber(snapshot.camera_qz)},${formatNumber(snapshot.camera_qw)}`
+            ].join(" ");
+        }
+
+        function maybeLogOrientationSample(source) {
+            const now = Date.now();
+            if (now - lastOrientationLogAt < 5000) {
+                return;
+            }
+            lastOrientationLogAt = now;
+            sendLog("orientation_sample", `${source} ${buildOrientationNote()}`);
         }
 
         function getOrCreateStorageId(key) {
@@ -506,6 +606,11 @@
             iosOrientationListening = true;
 
             window.addEventListener("deviceorientation", event => {
+                rawOrientationAlpha = typeof event.alpha === "number" ? event.alpha : null;
+                rawOrientationBeta = typeof event.beta === "number" ? event.beta : null;
+                rawOrientationGamma = typeof event.gamma === "number" ? event.gamma : null;
+                rawWebkitCompassHeading = typeof event.webkitCompassHeading === "number" ? event.webkitCompassHeading : null;
+
                 if (typeof event.webkitCompassHeading === "number") {
                     currentHeading = normalizeDegrees(event.webkitCompassHeading);
                     useManualOrientation = true;
@@ -518,6 +623,7 @@
                 manualBeta = degreesToRadians(event.beta || 0);
                 manualGamma = degreesToRadians(event.gamma || 0);
                 screenOrientationRad = getScreenOrientationRad();
+                maybeLogOrientationSample("window.deviceorientation");
             }, true);
 
             window.addEventListener("orientationchange", () => {
@@ -707,7 +813,7 @@
             }
 
             setStatus(message);
-            sendLog("anchor_lock", `type=${type} lat=${target.lat} lon=${target.lon}`);
+            sendLog("anchor_lock", `type=${type} lat=${target.lat} lon=${target.lon} ${buildOrientationNote()}`);
         }
 
         function resolveAnchorTarget(type) {
@@ -745,7 +851,8 @@
                 geolocation: !!navigator.geolocation,
                 arStarted,
                 userLoc,
-                lockedAnchorTarget
+                lockedAnchorTarget,
+                orientation: buildOrientationSnapshot()
             };
 
             setStatus(`診断: secure=${diagnostics.secureContext} / media=${diagnostics.mediaDevices} / geo=${diagnostics.geolocation} / arStarted=${diagnostics.arStarted}`);
@@ -802,7 +909,8 @@
                     if (!lockedAnchorTarget) {
                         setStatus("GPS OK。固定場所を選んでください。");
                     }
-                    sendLog("gps_update", `lat=${userLoc.lat} lon=${userLoc.lon} acc=${userLoc.accuracy}`);
+                    sendLog("gps_update", `lat=${userLoc.lat} lon=${userLoc.lon} acc=${userLoc.accuracy} ${buildOrientationNote()}`);
+                    maybeLogOrientationSample("gps_update");
                 });
 
                 locar.on("gpserror", error => {
@@ -822,9 +930,11 @@
                     sendLog("orientation_error", error?.message || "unknown");
                 });
                 deviceControls.on("deviceorientation", event => {
+                    rawOrientationAlpha = typeof event?.alpha === "number" ? event.alpha : rawOrientationAlpha;
                     if (typeof event?.alpha === "number") {
                         currentHeading = normalizeDegrees(360 - event.alpha);
                     }
+                    maybeLogOrientationSample("locar.deviceorientation");
                 });
 
                 setupIosOrientationFallback();
