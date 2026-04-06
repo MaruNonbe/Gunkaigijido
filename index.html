@@ -138,11 +138,26 @@
             font-size: 11px;
             padding: 4px 0;
         }
+
+        #camera-probe {
+            position: absolute;
+            left: 10px;
+            bottom: 120px;
+            width: 160px;
+            height: 120px;
+            z-index: 130;
+            border: 2px solid rgba(255, 255, 255, 0.75);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            object-fit: cover;
+        }
     </style>
 </head>
 
 <body>
     <button id="ui-toggle" onclick="toggleUi()">UI OFF</button>
+    <video id="camera-probe" autoplay playsinline muted></video>
     <div id="ui-layer">
         <div class="top-center clickable ui-group">
             <button id="lang-Japanese" class="active-btn" onclick="setLang('Japanese')">日本語</button>
@@ -151,6 +166,7 @@
             <button id="lang-Korean" onclick="setLang('Korean')">한국어</button>
             <div class="diag-row">
                 <button style="background:#e91e63; color:white;" onclick="requestCameraPermission()">カメラ開始</button>
+                <button style="background:#ff5722; color:white;" onclick="startCameraProbe()">直カメラ診断</button>
                 <button style="background:#3f51b5; color:white;" onclick="showCameraDiagnostics()">カメラ診断</button>
             </div>
         </div>
@@ -489,6 +505,8 @@
         const sceneEl = document.querySelector("a-scene");
         const cameraEl = document.getElementById("camera");
         const uiToggleButton = document.getElementById("ui-toggle");
+        const cameraProbe = document.getElementById("camera-probe");
+        let cameraProbeStream = null;
 
         function escapeCanvasText(text) {
             return String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
@@ -562,6 +580,38 @@
             } catch (error) {
                 const message = error && error.name ? error.name : String(error);
                 updateStatus(`カメラ許可に失敗しました: ${message}`);
+            }
+        }
+
+        async function startCameraProbe() {
+            if (explainCameraBlockedState()) {
+                return;
+            }
+
+            try {
+                if (cameraProbeStream) {
+                    cameraProbeStream.getTracks().forEach(track => track.stop());
+                    cameraProbeStream = null;
+                }
+
+                updateStatus("直カメラ診断を開始しています...");
+                cameraProbeStream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: "environment" },
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    },
+                    audio: false
+                });
+
+                cameraProbe.srcObject = cameraProbeStream;
+                cameraProbe.style.display = "block";
+                await cameraProbe.play();
+                updateStatus("直カメラ診断OK: 左下の小窓に映像が出ます。ここで出てARだけ出ないならAR.js側の問題です。");
+            } catch (error) {
+                const message = error && error.name ? error.name : String(error);
+                cameraProbe.style.display = "none";
+                updateStatus(`直カメラ診断に失敗しました: ${message}`);
             }
         }
 
