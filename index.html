@@ -343,6 +343,9 @@
         let uiVisible = true;
         let currentModelObject = null;
         let currentHeading = null;
+        let manualHeadingRad = null;
+        let useManualOrientation = false;
+        let iosOrientationListening = false;
         let panelHideTimer = null;
         const modelCache = new Map();
 
@@ -363,6 +366,29 @@
 
         function radiansToDegrees(rad) {
             return rad * 180 / Math.PI;
+        }
+
+        function normalizeDegrees(deg) {
+            return ((deg % 360) + 360) % 360;
+        }
+
+        function setupIosOrientationFallback() {
+            if (iosOrientationListening) {
+                return;
+            }
+
+            iosOrientationListening = true;
+
+            window.addEventListener("deviceorientation", event => {
+                if (typeof event.webkitCompassHeading === "number") {
+                    currentHeading = normalizeDegrees(event.webkitCompassHeading);
+                    manualHeadingRad = degreesToRadians(currentHeading);
+                    useManualOrientation = true;
+                } else if (typeof event.alpha === "number") {
+                    currentHeading = normalizeDegrees(360 - event.alpha);
+                    manualHeadingRad = degreesToRadians(currentHeading);
+                }
+            }, true);
         }
 
         function destinationPoint(lat, lon, bearingDeg, distanceMeters) {
@@ -649,10 +675,11 @@
                 });
                 deviceControls.on("deviceorientation", event => {
                     if (typeof event?.alpha === "number") {
-                        currentHeading = (360 - event.alpha + 360) % 360;
+                        currentHeading = normalizeDegrees(360 - event.alpha);
                     }
                 });
 
+                setupIosOrientationFallback();
                 await deviceControls.init();
                 locar.startGps();
                 arStarted = true;
@@ -667,6 +694,10 @@
             requestAnimationFrame(animate);
             if (deviceControls) {
                 deviceControls.update();
+            }
+            if (useManualOrientation && manualHeadingRad !== null) {
+                camera.rotation.order = "YXZ";
+                camera.rotation.y = manualHeadingRad;
             }
             renderer.render(scene, camera);
         }
