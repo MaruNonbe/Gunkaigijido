@@ -97,6 +97,24 @@
             cursor: pointer;
         }
 
+        .ar-link {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ar-link::after {
+            content: attr(data-label);
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
         button.active {
             background: var(--accent-3);
         }
@@ -263,11 +281,9 @@
                     <p id="file-path-note" style="margin-top:14px;font-size:12px;color:#cfe3f7;word-break:break-all;"></p>
                 </div>
                 <div class="button-row">
-                    <a id="launch-ar-link" class="button-link primary ar-link" rel="ar" href="all.usdz">
+                    <a id="launch-ar-link" class="button-link primary ar-link" rel="ar" href="all.usdz" data-label="ARを見る" aria-label="ARを見る">
                         <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="">
-                        <span>ARを見る</span>
                     </a>
-                    <button id="quicklook-link" class="button-link ui-group" type="button" onclick="openQuickLookFile()">Quick Look を起動</button>
                     <button class="audio" type="button" onclick="playAudio(currentModelKey)">音声再生</button>
                     <button type="button" onclick="stopAllAudio()">音声停止</button>
                 </div>
@@ -380,7 +396,6 @@
         const heroDescription = document.getElementById("hero-description");
         const modelLabel = document.getElementById("model-label");
         const launchArLink = document.getElementById("launch-ar-link");
-        const quickLookButton = document.getElementById("quicklook-link");
         const audioPlayer = document.getElementById("audio-player");
         const compatibilityChip = document.getElementById("compatibility-chip");
         const anchorChip = document.getElementById("anchor-chip");
@@ -481,15 +496,6 @@
         }
         window.showUnsupported = showUnsupported;
 
-        function openQuickLookFile() {
-            if (!isIOSSafari()) {
-                setStatus("Quick Look は iPhone / iPad の Safari で利用してください。");
-                return;
-            }
-            window.location.href = new URL(appData[currentModelKey].usdz, window.location.href).href;
-        }
-        window.openQuickLookFile = openQuickLookFile;
-
         function showDiagnostics() {
             const info = {
                 userAgent: navigator.userAgent,
@@ -508,7 +514,6 @@
             uiVisible = !uiVisible;
             document.body.classList.toggle("hidden-ui", !uiVisible);
             document.getElementById("ui-toggle").textContent = uiVisible ? "UI OFF" : "UI ON";
-            quickLookButton.style.display = uiVisible ? "inline-flex" : "none";
             setStatus(uiVisible ? "UI を表示しました。" : "UI を非表示にしました。");
         }
         window.toggleUi = toggleUi;
