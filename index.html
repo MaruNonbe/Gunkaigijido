@@ -260,6 +260,7 @@
                         <div class="chip" id="anchor-chip">位置固定: Quick Look では未対応</div>
                         <div class="chip" id="transform-chip">回転・拡大縮小: Quick Look 側で操作</div>
                     </div>
+                    <p id="file-path-note" style="margin-top:14px;font-size:12px;color:#cfe3f7;word-break:break-all;"></p>
                 </div>
                 <div class="button-row">
                     <a id="launch-ar-link" class="button-link primary ar-link" rel="ar" href="all.usdz">
@@ -384,6 +385,7 @@
         const compatibilityChip = document.getElementById("compatibility-chip");
         const anchorChip = document.getElementById("anchor-chip");
         const transformChip = document.getElementById("transform-chip");
+        const filePathNote = document.getElementById("file-path-note");
 
         let currentLang = "Japanese";
         let currentModelKey = "all";
@@ -408,14 +410,16 @@
 
         function refreshView() {
             const model = appData[currentModelKey];
+            const resolvedUrl = new URL(model.usdz, window.location.href).href;
             heroTitle.textContent = model.title;
             heroDescription.textContent = getCurrentDescription();
             modelLabel.textContent = model.label.toUpperCase();
             textPanel.textContent = getCurrentDescription();
-            launchArLink.href = model.usdz;
+            launchArLink.href = resolvedUrl;
             compatibilityChip.textContent = isIOSSafari() ? "Quick Look Ready" : "iOS Safari Required";
             anchorChip.textContent = "位置指定: " + locations[selectedAnchor] + "（Quick Look には未連携）";
             transformChip.textContent = "回転・拡大縮小は Quick Look 側で操作";
+            filePathNote.textContent = "USDZ: " + resolvedUrl;
         }
 
         function switchModel(key) {
@@ -482,7 +486,7 @@
                 setStatus("Quick Look は iPhone / iPad の Safari で利用してください。");
                 return;
             }
-            window.location.href = appData[currentModelKey].usdz;
+            window.location.href = new URL(appData[currentModelKey].usdz, window.location.href).href;
         }
         window.openQuickLookFile = openQuickLookFile;
 
