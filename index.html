@@ -343,11 +343,18 @@
         let uiVisible = true;
         let currentModelObject = null;
         let currentHeading = null;
-        let manualHeadingRad = null;
         let useManualOrientation = false;
         let iosOrientationListening = false;
+        let manualAlpha = 0;
+        let manualBeta = 0;
+        let manualGamma = 0;
+        let screenOrientationRad = 0;
         let panelHideTimer = null;
         const modelCache = new Map();
+        const zee = new THREE.Vector3(0, 0, 1);
+        const euler = new THREE.Euler();
+        const q0 = new THREE.Quaternion();
+        const q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
 
         function setStatus(message) {
             statusBar.innerText = message;
@@ -372,6 +379,23 @@
             return ((deg % 360) + 360) % 360;
         }
 
+        function getScreenOrientationRad() {
+            if (screen.orientation && typeof screen.orientation.angle === "number") {
+                return degreesToRadians(screen.orientation.angle);
+            }
+            if (typeof window.orientation === "number") {
+                return degreesToRadians(window.orientation);
+            }
+            return 0;
+        }
+
+        function setCameraQuaternionFromDeviceData(quaternion, alpha, beta, gamma, orient) {
+            euler.set(beta, alpha, -gamma, "YXZ");
+            quaternion.setFromEuler(euler);
+            quaternion.multiply(q1);
+            quaternion.multiply(q0.setFromAxisAngle(zee, -orient));
+        }
+
         function setupIosOrientationFallback() {
             if (iosOrientationListening) {
                 return;
@@ -382,13 +406,21 @@
             window.addEventListener("deviceorientation", event => {
                 if (typeof event.webkitCompassHeading === "number") {
                     currentHeading = normalizeDegrees(event.webkitCompassHeading);
-                    manualHeadingRad = degreesToRadians(currentHeading);
                     useManualOrientation = true;
+                    manualAlpha = degreesToRadians(360 - event.webkitCompassHeading);
                 } else if (typeof event.alpha === "number") {
                     currentHeading = normalizeDegrees(360 - event.alpha);
-                    manualHeadingRad = degreesToRadians(currentHeading);
+                    manualAlpha = degreesToRadians(event.alpha);
                 }
+
+                manualBeta = degreesToRadians(event.beta || 0);
+                manualGamma = degreesToRadians(event.gamma || 0);
+                screenOrientationRad = getScreenOrientationRad();
             }, true);
+
+            window.addEventListener("orientationchange", () => {
+                screenOrientationRad = getScreenOrientationRad();
+            });
         }
 
         function destinationPoint(lat, lon, bearingDeg, distanceMeters) {
@@ -695,9 +727,14 @@
             if (deviceControls) {
                 deviceControls.update();
             }
-            if (useManualOrientation && manualHeadingRad !== null) {
-                camera.rotation.order = "YXZ";
-                camera.rotation.y = manualHeadingRad;
+            if (useManualOrientation) {
+                setCameraQuaternionFromDeviceData(
+                    camera.quaternion,
+                    manualAlpha,
+                    manualBeta,
+                    manualGamma,
+                    screenOrientationRad
+                );
             }
             renderer.render(scene, camera);
         }
