@@ -419,12 +419,14 @@
             }
 
             const payload = buildLogPayload(eventType, note);
-            const body = JSON.stringify(payload);
+            const formBody = new URLSearchParams();
+            Object.entries(payload).forEach(([key, value]) => {
+                formBody.append(key, value == null ? "" : String(value));
+            });
 
             try {
                 if (navigator.sendBeacon) {
-                    const blob = new Blob([body], { type: "application/json" });
-                    if (navigator.sendBeacon(LOG_ENDPOINT, blob)) {
+                    if (navigator.sendBeacon(LOG_ENDPOINT, formBody)) {
                         return;
                     }
                 }
@@ -434,9 +436,8 @@
 
             fetch(LOG_ENDPOINT, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body,
-                mode: "cors",
+                body: formBody,
+                mode: "no-cors",
                 keepalive: true
             }).catch(error => {
                 console.warn("log post failed", error);
