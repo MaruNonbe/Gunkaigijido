@@ -98,21 +98,8 @@
         }
 
         .ar-link {
-            position: relative;
+            padding: 0;
             overflow: hidden;
-        }
-
-        .ar-link::after {
-            content: attr(data-label);
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            pointer-events: none;
         }
 
         button.active {
@@ -237,11 +224,11 @@
         }
 
         .ar-link img {
-            width: 1px;
-            height: 1px;
-            opacity: 0.001;
-            position: absolute;
-            pointer-events: none;
+            display: block;
+            width: 100%;
+            height: 100%;
+            min-width: 132px;
+            min-height: 42px;
         }
 
         @media (max-width: 860px) {
@@ -281,8 +268,8 @@
                     <p id="file-path-note" style="margin-top:14px;font-size:12px;color:#cfe3f7;word-break:break-all;"></p>
                 </div>
                 <div class="button-row">
-                    <a id="launch-ar-link" class="button-link primary ar-link" rel="ar" href="all.usdz" data-label="ARを見る" aria-label="ARを見る">
-                        <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="">
+                    <a id="launch-ar-link" class="button-link primary ar-link" rel="ar" href="all.usdz" aria-label="ARを見る">
+                        <img id="launch-ar-image" src="" alt="ARを見る">
                     </a>
                     <button class="audio" type="button" onclick="playAudio(currentModelKey)">音声再生</button>
                     <button type="button" onclick="stopAllAudio()">音声停止</button>
@@ -396,6 +383,7 @@
         const heroDescription = document.getElementById("hero-description");
         const modelLabel = document.getElementById("model-label");
         const launchArLink = document.getElementById("launch-ar-link");
+        const launchArImage = document.getElementById("launch-ar-image");
         const audioPlayer = document.getElementById("audio-player");
         const compatibilityChip = document.getElementById("compatibility-chip");
         const anchorChip = document.getElementById("anchor-chip");
@@ -423,6 +411,22 @@
             return group[currentLang] || group.Japanese || "";
         }
 
+        function makeArPoster(label) {
+            const svg = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="264" height="84" viewBox="0 0 264 84">
+                    <defs>
+                        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+                            <stop offset="0%" stop-color="#0ea5e9"/>
+                            <stop offset="100%" stop-color="#0369a1"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="264" height="84" rx="24" fill="url(#g)"/>
+                    <text x="132" y="51" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">${label}</text>
+                </svg>
+            `;
+            return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
+        }
+
         function refreshView() {
             const model = appData[currentModelKey];
             const resolvedUrl = new URL(model.usdz, window.location.href).href;
@@ -431,6 +435,7 @@
             modelLabel.textContent = model.label.toUpperCase();
             textPanel.textContent = getCurrentDescription();
             launchArLink.href = resolvedUrl;
+            launchArImage.src = makeArPoster("ARを見る");
             compatibilityChip.textContent = isIOSSafari() ? "Quick Look Ready" : "iOS Safari Required";
             anchorChip.textContent = "位置指定: " + locations[selectedAnchor] + "（Quick Look には未連携）";
             transformChip.textContent = "回転・拡大縮小は Quick Look 側で操作";
