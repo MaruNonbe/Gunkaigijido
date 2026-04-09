@@ -3,249 +3,53 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>旧西置賜郡議事堂 AR Quick Look</title>
+    <title>旧西置賜郡役所、初代／2代目西置賜郡会議事堂ARモデル</title>
     <style>
-        :root {
-            --bg-top: #0b1624;
-            --bg-bottom: #02060b;
-            --panel: rgba(12, 24, 37, 0.9);
-            --panel-border: rgba(194, 223, 255, 0.22);
-            --text: #f3f7fb;
-            --muted: #a7b7c8;
-            --accent: #0ea5e9;
-            --accent-2: #f97316;
-            --accent-3: #10b981;
-            --danger: #ef4444;
-            --disabled: #64748b;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            color: var(--text);
-            font-family: "Hiragino Sans", "Yu Gothic", sans-serif;
-            background:
-                radial-gradient(circle at top, rgba(14, 165, 233, 0.18), transparent 34%),
-                linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
-        }
-
-        .shell {
-            width: min(1080px, calc(100vw - 24px));
-            margin: 0 auto;
-            padding: 18px 0 28px;
-        }
-
-        .topbar,
-        .grid,
-        .panel {
-            background: var(--panel);
-            border: 1px solid var(--panel-border);
-            border-radius: 18px;
-            backdrop-filter: blur(10px);
-        }
-
-        .topbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px;
-            margin-bottom: 14px;
-        }
-
-        .title {
-            min-width: 220px;
-        }
-
-        .title h1 {
-            margin: 0 0 4px;
-            font-size: 20px;
-        }
-
-        .title p {
-            margin: 0;
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        .button-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        button,
-        .button-link {
-            border: none;
-            border-radius: 12px;
-            padding: 11px 14px;
-            min-height: 42px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            background: #243344;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-            font-size: 13px;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-        }
-
-        .ar-link {
-            padding: 0;
-            overflow: hidden;
-        }
-
-        button.active {
-            background: var(--accent-3);
-        }
-
-        .primary {
-            background: var(--accent);
-        }
-
-        .audio {
-            background: var(--accent-2);
-        }
-
-        .warn {
-            background: var(--danger);
-        }
-
-        .disabled {
-            background: var(--disabled);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: 1.2fr 0.8fr;
-            overflow: hidden;
-        }
-
-        .preview {
-            min-height: 360px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background:
-                linear-gradient(180deg, rgba(8, 16, 25, 0.55), rgba(8, 16, 25, 0.9)),
-                radial-gradient(circle at center, rgba(14, 165, 233, 0.16), transparent 48%);
-        }
-
-        .eyebrow {
-            color: #8bd7ff;
-            font-size: 12px;
-            letter-spacing: 0.08em;
-        }
-
-        .preview h2 {
-            margin: 10px 0 8px;
-            line-height: 1.08;
-            font-size: clamp(28px, 4vw, 48px);
-        }
-
-        .preview p {
-            margin: 0;
-            max-width: 46ch;
-            color: var(--muted);
-            line-height: 1.7;
-        }
-
-        .preview-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 22px;
-        }
-
-        .chip {
-            padding: 8px 12px;
-            border: 1px solid rgba(159, 176, 193, 0.24);
-            border-radius: 999px;
-            color: #d8e5f2;
-            font-size: 12px;
-        }
-
-        .controls {
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .panel {
-            padding: 14px;
-        }
-
-        .panel h3 {
-            margin: 0 0 10px;
-            color: #b8c7d8;
-            font-size: 13px;
-        }
-
-        .stack {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .pair {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px;
-        }
-
-        .status {
-            margin-top: 14px;
-            padding: 12px 14px;
-            border-radius: 14px;
-            color: #d6f2ff;
-            background: rgba(2, 26, 42, 0.84);
-            border: 1px solid rgba(14, 165, 233, 0.2);
-            font-size: 12px;
-        }
-
-        .text-panel {
-            margin-top: 14px;
-            min-height: 140px;
-            line-height: 1.8;
-            white-space: pre-wrap;
-        }
-
-        .hidden-ui .ui-group {
-            display: none;
-        }
-
-        .ar-link img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            min-width: 132px;
-            min-height: 42px;
-        }
-
-        @media (max-width: 860px) {
-            .grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        :root { --bg:#08111c; --panel:#122235; --line:#28445f; --text:#f3f7fb; --muted:#a7b7c8; --accent:#0ea5e9; --accent2:#f97316; --ok:#10b981; --danger:#ef4444; }
+        * { box-sizing:border-box; }
+        body { margin:0; color:var(--text); font-family:"Hiragino Sans","Yu Gothic",sans-serif; background:linear-gradient(180deg,#0b1624,#02060b); }
+        .shell { width:min(1080px,calc(100vw - 24px)); margin:0 auto; padding:18px 0 28px; }
+        .panel { background:rgba(12,24,37,.92); border:1px solid rgba(194,223,255,.18); border-radius:18px; padding:14px; }
+        .topbar,.grid { display:grid; gap:14px; }
+        .topbar { grid-template-columns:1fr auto; align-items:center; margin-bottom:14px; }
+        .title h1 { margin:0 0 4px; font-size:20px; }
+        .title p,.muted,.note { margin:0; color:var(--muted); font-size:12px; line-height:1.7; }
+        .grid { grid-template-columns:1.2fr .8fr; }
+        .preview { min-height:320px; display:flex; flex-direction:column; justify-content:space-between; }
+        .eyebrow { color:#8bd7ff; font-size:12px; letter-spacing:.08em; }
+        .preview h2 { margin:10px 0 8px; line-height:1.08; font-size:clamp(28px,4vw,46px); }
+        .chips,.row,.stack,.survey-grid,.options { display:flex; flex-wrap:wrap; gap:8px; }
+        .chip,.meta { padding:8px 12px; border:1px solid rgba(159,176,193,.24); border-radius:999px; font-size:12px; color:#d8e5f2; }
+        .controls { display:grid; gap:14px; }
+        .pair { display:grid; grid-template-columns:1fr auto; gap:8px; }
+        button,a.button { border:none; border-radius:12px; padding:11px 14px; min-height:42px; color:#fff; background:#243344; font-size:13px; font-weight:700; text-decoration:none; cursor:pointer; }
+        button.active { background:var(--ok); }
+        .primary { background:var(--accent); }
+        .audio { background:var(--accent2); }
+        .warn { background:var(--danger); }
+        .disabled { background:#64748b; }
+        .status { margin-top:14px; padding:12px 14px; border-radius:14px; font-size:12px; color:#d6f2ff; background:rgba(2,26,42,.84); border:1px solid rgba(14,165,233,.2); }
+        .text-panel { margin-top:14px; min-height:110px; white-space:pre-wrap; line-height:1.8; }
+        .survey { margin-top:14px; display:grid; gap:14px; }
+        .survey-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+        .field.full { grid-column:1 / -1; }
+        fieldset { margin:0; padding:0; border:none; min-width:0; }
+        legend,label { font-size:13px; font-weight:700; color:#dfeaf5; }
+        .options label { display:inline-flex; align-items:center; gap:6px; padding:10px 12px; border-radius:12px; border:1px solid rgba(194,223,255,.18); background:rgba(3,12,21,.55); font-size:12px; font-weight:500; cursor:pointer; }
+        textarea { width:100%; min-height:92px; padding:12px 14px; border:1px solid rgba(194,223,255,.18); border-radius:12px; background:rgba(3,12,21,.55); color:var(--text); font:inherit; resize:vertical; }
+        .right { justify-content:space-between; align-items:center; }
+        .hidden-ui .ui-group { display:none; }
+        @media (max-width:860px) { .topbar,.grid,.survey-grid { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
     <div class="shell">
-        <div class="topbar">
+        <div class="topbar panel">
             <div class="title">
-                <h1>旧西置賜郡議事堂 AR</h1>
-                <p>USDZ / Quick Look 版。iPhone・iPad の Safari で AR 表示します。</p>
+                <h1>旧西置賜郡役所、初代／2代目西置賜郡会議事堂ARモデル</h1>
+                <p>USDZ / Quick Look を使って、iPhone・iPad の Safari で AR 表示します。</p>
             </div>
-            <div class="button-row">
+            <div class="row">
                 <button id="lang-Japanese" class="active ui-group" type="button" onclick="setLang('Japanese')">日本語</button>
                 <button id="lang-English" class="ui-group" type="button" onclick="setLang('English')">English</button>
                 <button id="lang-Chinese" class="ui-group" type="button" onclick="setLang('Chinese')">中文</button>
@@ -255,22 +59,20 @@
         </div>
 
         <div class="grid">
-            <section class="preview">
+            <section class="panel preview">
                 <div>
                     <div class="eyebrow" id="model-label">MODEL</div>
                     <h2 id="hero-title">全体表示</h2>
-                    <p id="hero-description">Apple Quick Look で USDZ を開いて AR 表示します。ブラウザ内 3D 表示ではありません。</p>
-                    <div class="preview-meta">
+                    <p id="hero-description">Apple Quick Look を使い、選択した USDZ をシステム AR ビューアで開きます。</p>
+                    <div class="chips" style="margin-top:22px;">
                         <div class="chip" id="compatibility-chip">Quick Look Ready</div>
-                        <div class="chip" id="anchor-chip">位置固定: Quick Look では未対応</div>
-                        <div class="chip" id="transform-chip">回転・拡大縮小: Quick Look 側で操作</div>
+                        <div class="chip" id="anchor-chip">配置位置は Quick Look 内で調整</div>
+                        <div class="chip" id="transform-chip">回転・拡大縮小は Quick Look 内で操作</div>
                     </div>
-                    <p id="file-path-note" style="margin-top:14px;font-size:12px;color:#cfe3f7;word-break:break-all;"></p>
+                    <p id="file-path-note" class="note" style="margin-top:14px;word-break:break-all;"></p>
                 </div>
-                <div class="button-row">
-                    <a id="launch-ar-link" class="button-link primary ar-link" rel="ar" href="all.usdz" aria-label="ARを見る">
-                        <img id="launch-ar-image" src="" alt="ARを見る">
-                    </a>
+                <div class="row">
+                    <a id="launch-ar-link" class="button primary" rel="ar" href="all.usdz" aria-label="ARを見る">ARを見る</a>
                     <button class="audio" type="button" onclick="playAudio(currentModelKey)">音声再生</button>
                     <button type="button" onclick="stopAllAudio()">音声停止</button>
                 </div>
@@ -297,39 +99,131 @@
                 </div>
 
                 <div class="panel">
-                    <h3>位置ボタン</h3>
+                    <h3>配置候補</h3>
                     <div class="stack">
-                        <button id="btn-current" type="button" onclick="setAnchorLocation('current')">現在地の前方15m</button>
+                        <button id="btn-current" type="button" onclick="setAnchorLocation('current')">現在地の南東15m</button>
                         <button id="btn-tas" type="button" onclick="setAnchorLocation('tas')">TAS</button>
-                        <button id="btn-office" type="button" onclick="setAnchorLocation('office')">旧役所位置</button>
+                        <button id="btn-office" type="button" onclick="setAnchorLocation('office')">役所前広場</button>
                     </div>
                 </div>
 
                 <div class="panel">
-                    <h3>変形操作</h3>
+                    <h3>補足</h3>
                     <div class="stack">
                         <button class="disabled" type="button" onclick="showUnsupported('rotation')">回転</button>
                         <button class="disabled" type="button" onclick="showUnsupported('height')">高さ</button>
                         <button class="disabled" type="button" onclick="showUnsupported('scale')">サイズ</button>
                     </div>
                 </div>
-
-                <div class="panel">
-                    <h3>補助</h3>
-                    <div class="stack">
-                        <button type="button" onclick="showDiagnostics()">診断</button>
-                        <button class="warn" type="button" onclick="location.reload()">再読み込み</button>
-                    </div>
-                </div>
             </aside>
         </div>
 
         <div id="text-panel" class="panel text-panel ui-group"></div>
-        <div id="status-bar" class="status ui-group">Safari で「ARを見る」を直接タップすると Quick Look が起動します。</div>
+        <div id="status-bar" class="status ui-group">Safari で「ARを見る」をタップすると Quick Look が起動します。</div>
+
+        <section class="survey ui-group">
+            <div class="panel">
+                <div class="row right">
+                    <div>
+                        <h3>AR体験アンケート</h3>
+                        <p class="note">AR体験後の印象と操作性を記録します。Google Sheets に送信します。</p>
+                    </div>
+                    <button type="button" onclick="scrollToSurvey()">アンケートへ移動</button>
+                </div>
+                <p class="note" style="margin-top:8px;">「ARを見る」を押した時刻から送信時刻までを体験時間として自動計測します。</p>
+            </div>
+
+            <form id="survey-form" class="panel" novalidate>
+                <div class="survey-grid">
+                    <div class="field">
+                        <fieldset><legend>年代</legend><div class="options">
+                            <label><input type="radio" name="age_group" value="10代以下">10代以下</label>
+                            <label><input type="radio" name="age_group" value="20代">20代</label>
+                            <label><input type="radio" name="age_group" value="30代">30代</label>
+                            <label><input type="radio" name="age_group" value="40代">40代</label>
+                            <label><input type="radio" name="age_group" value="50代">50代</label>
+                            <label><input type="radio" name="age_group" value="60代以上">60代以上</label>
+                            <label><input type="radio" name="age_group" value="回答しない">回答しない</label>
+                        </div></fieldset>
+                    </div>
+                    <div class="field">
+                        <fieldset><legend>性別</legend><div class="options">
+                            <label><input type="radio" name="gender" value="女性">女性</label>
+                            <label><input type="radio" name="gender" value="男性">男性</label>
+                            <label><input type="radio" name="gender" value="その他">その他</label>
+                            <label><input type="radio" name="gender" value="回答しない">回答しない</label>
+                        </div></fieldset>
+                    </div>
+                    <div class="field">
+                        <fieldset><legend>来訪エリア</legend><div class="options">
+                            <label><input type="radio" name="visitor_area" value="長井市内">長井市内</label>
+                            <label><input type="radio" name="visitor_area" value="置賜地域">置賜地域</label>
+                            <label><input type="radio" name="visitor_area" value="山形県内">山形県内</label>
+                            <label><input type="radio" name="visitor_area" value="県外">県外</label>
+                            <label><input type="radio" name="visitor_area" value="回答しない">回答しない</label>
+                        </div></fieldset>
+                    </div>
+                    <div class="field">
+                        <fieldset><legend>AR体験は初めてですか</legend><div class="options">
+                            <label><input type="radio" name="ar_experience" value="初めて">初めて</label>
+                            <label><input type="radio" name="ar_experience" value="体験したことがある">体験したことがある</label>
+                            <label><input type="radio" name="ar_experience" value="回答しない">回答しない</label>
+                        </div></fieldset>
+                    </div>
+                    <div class="field">
+                        <fieldset><legend>操作のしやすさ</legend><div class="options">
+                            <label><input type="radio" name="ease_of_use" value="とても簡単">とても簡単</label>
+                            <label><input type="radio" name="ease_of_use" value="まあ簡単">まあ簡単</label>
+                            <label><input type="radio" name="ease_of_use" value="普通">普通</label>
+                            <label><input type="radio" name="ease_of_use" value="少し難しい">少し難しい</label>
+                            <label><input type="radio" name="ease_of_use" value="難しい">難しい</label>
+                        </div></fieldset>
+                    </div>
+                    <div class="field">
+                        <fieldset><legend>表示の安定性</legend><div class="options">
+                            <label><input type="radio" name="stability" value="問題なし">問題なし</label>
+                            <label><input type="radio" name="stability" value="少し重い">少し重い</label>
+                            <label><input type="radio" name="stability" value="重い">重い</label>
+                            <label><input type="radio" name="stability" value="表示できなかった">表示できなかった</label>
+                        </div></fieldset>
+                    </div>
+                    <div class="field full">
+                        <fieldset><legend>AR体験の感想</legend><div class="options">
+                            <label><input type="radio" name="impression" value="とても良い">とても良い</label>
+                            <label><input type="radio" name="impression" value="良い">良い</label>
+                            <label><input type="radio" name="impression" value="普通">普通</label>
+                            <label><input type="radio" name="impression" value="改善が必要">改善が必要</label>
+                        </div></fieldset>
+                    </div>
+                    <div class="field full">
+                        <label for="free-good">面白かった点</label>
+                        <textarea id="free-good" name="free_good"></textarea>
+                    </div>
+                    <div class="field full">
+                        <label for="free-problem">困った点</label>
+                        <textarea id="free-problem" name="free_problem"></textarea>
+                    </div>
+                    <div class="field full">
+                        <label for="free-request">要望</label>
+                        <textarea id="free-request" name="free_request"></textarea>
+                    </div>
+                </div>
+                <div class="row right" style="margin-top:14px;">
+                    <div class="row">
+                        <div class="meta" id="survey-model-chip">Model: all</div>
+                        <div class="meta" id="survey-duration-chip">AR time: not started</div>
+                    </div>
+                    <div class="row">
+                        <button type="button" onclick="resetSurveyDraft()">入力を消去</button>
+                        <button id="survey-submit" class="primary" type="submit">Google Sheets に送信</button>
+                    </div>
+                </div>
+                <div id="survey-status" class="status" style="margin-top:12px; min-height:44px;"></div>
+            </form>
+        </section>
     </div>
 
     <audio id="audio-player" preload="none"></audio>
-
     <script>
         const appData = {
             all: { label: "全体表示", usdz: "all.usdz", title: "全体表示" },
@@ -337,45 +231,15 @@
             "1st": { label: "初代議事堂", usdz: "1st.usdz", title: "初代議事堂" },
             "2nd": { label: "二代目議事堂", usdz: "2nd.usdz", title: "二代目議事堂" }
         };
-
-        const audioFiles = {
-            kozakura: "audio/Kozakura_",
-            "1st": "audio/1st_NisiokitamaGunkai_",
-            "2nd": "audio/2nd_NishiokitamaGUnkai_"
-        };
-
         const descriptions = {
-            all: {
-                Japanese: "文教の森 AR\n\nこの版は Apple Quick Look を使います。USDZ モデルはページ内ではなく、システムの AR ビューアで表示されます。",
-                English: "Bunkyo no Mori AR\n\nThis version uses Apple Quick Look. The USDZ model opens in the system AR viewer instead of rendering inside the page.",
-                Chinese: "文教之森 AR\n\n此版本使用 Apple Quick Look。USDZ 模型会在系统 AR 检视器中打开，而不是在页面内渲染。",
-                Korean: "문교의 숲 AR\n\n이 버전은 Apple Quick Look을 사용합니다. USDZ 모델은 페이지 내부가 아니라 시스템 AR 뷰어에서 열립니다."
-            },
-            kozakura: {
-                Japanese: "旧西置賜郡役所\n\n明治11年建築。現在は小桜館として保存されています。",
-                English: "Former Nishiokitama District Office\n\nBuilt in 1878 and preserved today as Kozakura-kan.",
-                Chinese: "旧西置赐郡役所\n\n建于 1878 年，现保存为小樱馆。",
-                Korean: "구 니시오키타마 군청\n\n1878년에 세워졌고 현재는 고자쿠라관으로 보존되어 있습니다."
-            },
-            "1st": {
-                Japanese: "初代議事堂\n\n明治20年建築の木造洋風議事堂です。",
-                English: "First Assembly Hall\n\nA Western-style wooden hall built in 1887.",
-                Chinese: "初代议事堂\n\n建于 1887 年的木造西式议事堂。",
-                Korean: "초대 의사당\n\n1887년에 지어진 서양식 목조 의사당입니다."
-            },
-            "2nd": {
-                Japanese: "二代目議事堂\n\n1911年10月に新築された二代目の建物です。",
-                English: "Second Assembly Hall\n\nThe second hall was newly built in October 1911.",
-                Chinese: "第二代议事堂\n\n1911 年 10 月新建。",
-                Korean: "2대 의사당\n\n1911년 10월에 새로 지어진 건물입니다."
-            }
+            all: { Japanese: "3つの建物をまとめて表示します。重い場合は個別モデルを選んでください。", English: "Shows all three buildings together.", Chinese: "同时显示三座建筑。", Korean: "세 건물을 함께 표시합니다." },
+            kozakura: { Japanese: "旧西置賜郡役所のARモデルです。", English: "Former district office.", Chinese: "旧西置赐郡役所。", Korean: "구 니시오키타마 군청." },
+            "1st": { Japanese: "初代旧西置賜郡会議事堂のARモデルです。", English: "First assembly hall.", Chinese: "初代会议事堂。", Korean: "초대 회의사당." },
+            "2nd": { Japanese: "二代目旧西置賜郡会議事堂のARモデルです。", English: "Second assembly hall.", Chinese: "第二代会议事堂。", Korean: "2대 회의사당." }
         };
-
-        const locations = {
-            current: "現在地の前方15m",
-            tas: "TAS",
-            office: "旧役所位置"
-        };
+        const audioFiles = { kozakura: "audio/Kozakura_", "1st": "audio/1st_NisiokitamaGunkai_", "2nd": "audio/2nd_NishiokitamaGUnkai_" };
+        const locations = { current: "現在地の南東15m", tas: "TAS", office: "役所前広場" };
+        const surveyConfig = { endpoint: "https://script.google.com/macros/s/AKfycbwgwKmn182INw30dpcm3Yaet4ZXZKyPzLpY1qOAX9kvENckPjZH4mBZg_E4aQ1w-qFg/exec", storageKey: "nishiokitama-ar-survey-draft", sessionKey: "nishiokitama-ar-session" };
 
         const textPanel = document.getElementById("text-panel");
         const statusBar = document.getElementById("status-bar");
@@ -383,50 +247,34 @@
         const heroDescription = document.getElementById("hero-description");
         const modelLabel = document.getElementById("model-label");
         const launchArLink = document.getElementById("launch-ar-link");
-        const launchArImage = document.getElementById("launch-ar-image");
-        const audioPlayer = document.getElementById("audio-player");
         const compatibilityChip = document.getElementById("compatibility-chip");
         const anchorChip = document.getElementById("anchor-chip");
         const transformChip = document.getElementById("transform-chip");
         const filePathNote = document.getElementById("file-path-note");
+        const audioPlayer = document.getElementById("audio-player");
+        const surveyForm = document.getElementById("survey-form");
+        const surveyStatus = document.getElementById("survey-status");
+        const surveySubmitButton = document.getElementById("survey-submit");
+        const surveyModelChip = document.getElementById("survey-model-chip");
+        const surveyDurationChip = document.getElementById("survey-duration-chip");
 
         let currentLang = "Japanese";
         let currentModelKey = "all";
         let uiVisible = true;
         let selectedAnchor = "office";
+        let surveySession = loadSurveySession();
 
-        function setStatus(message) {
-            statusBar.textContent = message;
-        }
-
-        function isIOSSafari() {
-            const ua = navigator.userAgent;
-            const isIOS = /iPhone|iPad|iPod/.test(ua);
-            const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
-            return isIOS && isSafari;
-        }
-
-        function getCurrentDescription() {
-            const group = descriptions[currentModelKey] || descriptions.all;
-            return group[currentLang] || group.Japanese || "";
-        }
-
-        function makeArPoster(label) {
-            const svg = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="264" height="84" viewBox="0 0 264 84">
-                    <defs>
-                        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-                            <stop offset="0%" stop-color="#0ea5e9"/>
-                            <stop offset="100%" stop-color="#0369a1"/>
-                        </linearGradient>
-                    </defs>
-                    <rect width="264" height="84" rx="24" fill="url(#g)"/>
-                    <text x="132" y="51" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" font-weight="700" fill="#ffffff">${label}</text>
-                </svg>
-            `;
-            return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
-        }
-
+        function setStatus(message) { statusBar.textContent = message; }
+        function setSurveyStatus(message, isError = false) { surveyStatus.textContent = message; surveyStatus.style.color = isError ? "#fecaca" : "#d6f2ff"; }
+        function createSurveySession(modelKey = currentModelKey) { return { sessionId: Math.random().toString(36).slice(2, 10) + Date.now().toString(36), startedAt: Date.now(), modelKey }; }
+        function loadSurveySession() { try { const raw = localStorage.getItem(surveyConfig.sessionKey); return raw ? JSON.parse(raw) : createSurveySession(); } catch { return createSurveySession(); } }
+        function saveSurveySession() { localStorage.setItem(surveyConfig.sessionKey, JSON.stringify(surveySession)); }
+        function clearSurveyDraft() { localStorage.removeItem(surveyConfig.storageKey); }
+        function getSurveyDurationSeconds() { return surveySession.startedAt ? Math.max(0, Math.round((Date.now() - surveySession.startedAt) / 1000)) : ""; }
+        function updateSurveyMeta() { surveyModelChip.textContent = "Model: " + appData[currentModelKey].label; const d = getSurveyDurationSeconds(); surveyDurationChip.textContent = d ? "AR time: " + d + " sec" : "AR time: not started"; }
+        function noteArLaunch() { surveySession = createSurveySession(currentModelKey); saveSurveySession(); updateSurveyMeta(); setSurveyStatus("AR start time recorded."); }
+        function isIOSSafari() { const ua = navigator.userAgent; return /iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua); }
+        function getCurrentDescription() { return (descriptions[currentModelKey] || descriptions.all)[currentLang] || descriptions[currentModelKey].Japanese; }
         function refreshView() {
             const model = appData[currentModelKey];
             const resolvedUrl = new URL(model.usdz, window.location.href).href;
@@ -435,94 +283,39 @@
             modelLabel.textContent = model.label.toUpperCase();
             textPanel.textContent = getCurrentDescription();
             launchArLink.href = resolvedUrl;
-            launchArImage.src = makeArPoster("ARを見る");
             compatibilityChip.textContent = isIOSSafari() ? "Quick Look Ready" : "iOS Safari Required";
-            anchorChip.textContent = "位置指定: " + locations[selectedAnchor] + "（Quick Look には未連携）";
-            transformChip.textContent = "回転・拡大縮小は Quick Look 側で操作";
+            anchorChip.textContent = "配置候補: " + locations[selectedAnchor];
+            transformChip.textContent = "回転・拡大縮小は Quick Look 内で操作";
             filePathNote.textContent = "USDZ: " + resolvedUrl;
+            updateSurveyMeta();
         }
-
-        function switchModel(key) {
-            currentModelKey = key;
-            document.querySelectorAll("button[id^='m-']").forEach((button) => button.classList.remove("active"));
-            const button = document.getElementById("m-" + key);
-            if (button) {
-                button.classList.add("active");
-            }
-            refreshView();
-            setStatus(appData[key].label + " の USDZ を選択しました。");
-        }
+        function switchModel(key) { currentModelKey = key; document.querySelectorAll("button[id^='m-']").forEach((b) => b.classList.remove("active")); document.getElementById("m-" + key).classList.add("active"); refreshView(); setStatus(appData[key].label + " を選択しました。"); }
         window.switchModel = switchModel;
-
-        function setLang(lang) {
-            currentLang = lang;
-            document.querySelectorAll("button[id^='lang-']").forEach((button) => button.classList.remove("active"));
-            document.getElementById("lang-" + lang).classList.add("active");
-            refreshView();
-            setStatus("表示言語を切り替えました。");
-        }
+        function setLang(lang) { currentLang = lang; document.querySelectorAll("button[id^='lang-']").forEach((b) => b.classList.remove("active")); document.getElementById("lang-" + lang).classList.add("active"); refreshView(); setStatus("表示言語を切り替えました。"); }
         window.setLang = setLang;
-
-        function playAudio(key) {
-            if (!audioFiles[key]) {
-                setStatus("このモデルに対応する音声はありません。");
-                return;
-            }
-            audioPlayer.src = audioFiles[key] + currentLang + ".wav";
-            audioPlayer.play()
-                .then(() => setStatus("音声を再生しています。"))
-                .catch(() => setStatus("音声の再生に失敗しました。audio フォルダとファイル名を確認してください。"));
-        }
+        function playAudio(key) { if (!audioFiles[key]) { setStatus("このモデルには音声がありません。"); return; } audioPlayer.src = audioFiles[key] + currentLang + ".wav"; audioPlayer.play().then(() => setStatus("音声を再生しています。")).catch(() => setStatus("音声の再生に失敗しました。")); }
         window.playAudio = playAudio;
-
-        function stopAllAudio() {
-            audioPlayer.pause();
-            audioPlayer.currentTime = 0;
-            setStatus("音声を停止しました。");
-        }
+        function stopAllAudio() { audioPlayer.pause(); audioPlayer.currentTime = 0; setStatus("音声を停止しました。"); }
         window.stopAllAudio = stopAllAudio;
-
-        function setAnchorLocation(type) {
-            selectedAnchor = type;
-            document.querySelectorAll("button[id^='btn-']").forEach((button) => button.classList.remove("active"));
-            document.getElementById("btn-" + type).classList.add("active");
-            refreshView();
-            setStatus(locations[type] + " を選択しました。Quick Look には位置情報を直接渡せません。");
-        }
+        function setAnchorLocation(type) { selectedAnchor = type; document.querySelectorAll("button[id^='btn-']").forEach((b) => b.classList.remove("active")); document.getElementById("btn-" + type).classList.add("active"); refreshView(); setStatus(locations[type] + " を基準候補として表示しています。"); }
         window.setAnchorLocation = setAnchorLocation;
-
-        function showUnsupported(kind) {
-            const messages = {
-                rotation: "回転はページ側では制御できません。Quick Look 起動後にユーザー操作で調整します。",
-                height: "高さは Quick Look へ直接引き継げません。",
-                scale: "サイズは Quick Look へ直接引き継げません。"
-            };
-            setStatus(messages[kind] || "この操作は Quick Look では未対応です。");
-        }
+        function showUnsupported(kind) { const messages = { rotation: "回転は Quick Look 内で行ってください。", height: "高さ調整は Quick Look 側で行ってください。", scale: "サイズ調整は Quick Look 側で行ってください。" }; setStatus(messages[kind] || "この操作は Quick Look 内で行ってください。"); }
         window.showUnsupported = showUnsupported;
-
-        function showDiagnostics() {
-            const info = {
-                userAgent: navigator.userAgent,
-                quickLookCapable: isIOSSafari(),
-                model: currentModelKey,
-                usdz: appData[currentModelKey].usdz,
-                language: currentLang,
-                anchorSelection: selectedAnchor
-            };
-            console.log("[quicklook-diagnostics]", info);
-            setStatus("診断情報をコンソールへ出力しました。");
-        }
-        window.showDiagnostics = showDiagnostics;
-
-        function toggleUi() {
-            uiVisible = !uiVisible;
-            document.body.classList.toggle("hidden-ui", !uiVisible);
-            document.getElementById("ui-toggle").textContent = uiVisible ? "UI OFF" : "UI ON";
-            setStatus(uiVisible ? "UI を表示しました。" : "UI を非表示にしました。");
-        }
+        function toggleUi() { uiVisible = !uiVisible; document.body.classList.toggle("hidden-ui", !uiVisible); document.getElementById("ui-toggle").textContent = uiVisible ? "UI OFF" : "UI ON"; }
         window.toggleUi = toggleUi;
+        function scrollToSurvey() { surveyForm.scrollIntoView({ behavior: "smooth", block: "start" }); }
+        window.scrollToSurvey = scrollToSurvey;
+        function resetSurveyDraft() { surveyForm.reset(); clearSurveyDraft(); surveySession = createSurveySession(currentModelKey); saveSurveySession(); updateSurveyMeta(); setSurveyStatus("Survey form cleared."); }
+        window.resetSurveyDraft = resetSurveyDraft;
+        function saveSurveyDraft() { const data = {}; new FormData(surveyForm).forEach((v, k) => { data[k] = v; }); localStorage.setItem(surveyConfig.storageKey, JSON.stringify(data)); }
+        function loadSurveyDraft() { try { const raw = localStorage.getItem(surveyConfig.storageKey); if (!raw) return; const data = JSON.parse(raw); Object.entries(data).forEach(([k, v]) => surveyForm.querySelectorAll(`[name="${k}"]`).forEach((el) => { if (el.type === "radio") el.checked = el.value === v; else el.value = v; })); } catch {} }
+        function collectSurveyPayload() { const formData = new FormData(surveyForm); return { timestamp: new Date().toISOString(), session_id: surveySession.sessionId, model_name: currentModelKey, age_group: formData.get("age_group") || "", gender: formData.get("gender") || "", visitor_area: formData.get("visitor_area") || "", ar_experience: formData.get("ar_experience") || "", ease_of_use: formData.get("ease_of_use") || "", stability: formData.get("stability") || "", impression: formData.get("impression") || "", free_good: formData.get("free_good") || "", free_problem: formData.get("free_problem") || "", free_request: formData.get("free_request") || "", ar_duration_sec: getSurveyDurationSeconds(), device_type: /iPhone|iPad|iPod/.test(navigator.userAgent) ? "iOS" : "Other", language: currentLang, page_url: window.location.href, user_agent: navigator.userAgent }; }
+        async function submitSurvey(event) { event.preventDefault(); saveSurveyDraft(); surveySubmitButton.disabled = true; setSurveyStatus("Sending survey..."); try { await fetch(surveyConfig.endpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(collectSurveyPayload()) }); surveyForm.reset(); clearSurveyDraft(); surveySession = createSurveySession(currentModelKey); saveSurveySession(); updateSurveyMeta(); setSurveyStatus("Survey sent. Thank you."); } catch { setSurveyStatus("Survey send failed.", true); } finally { surveySubmitButton.disabled = false; } }
 
+        launchArLink.addEventListener("click", noteArLaunch);
+        surveyForm.addEventListener("submit", submitSurvey);
+        surveyForm.addEventListener("input", saveSurveyDraft);
+        loadSurveyDraft();
         setAnchorLocation("office");
         switchModel("all");
     </script>
