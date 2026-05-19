@@ -44,7 +44,9 @@
         @media (max-width:860px) { .topbar,.grid,.survey-grid { grid-template-columns:1fr; } }
 
         /* ===== [追加] model-viewer スタイル ===== */
-        #mv-wrap { margin-top:14px; display:none; }           /* JS で表示制御 */
+        /* display:none 中も pointer-events を切る — タップ横取り防止 */
+        #mv-wrap { margin-top:14px; display:none; pointer-events:none; }
+        #mv-wrap.visible { pointer-events:auto; }
         model-viewer {
             width:100%;
             height:340px;
@@ -52,6 +54,8 @@
             border:1px solid rgba(194,223,255,.18);
             background:#0b1624;
             --progress-bar-color: var(--accent);
+            /* 縦スクロールを妨げない */
+            touch-action: pan-y;
         }
         #mv-unavailable {
             display:none;
@@ -164,7 +168,6 @@
                 ar
                 ar-modes="scene-viewer webxr"
                 camera-controls
-                auto-rotate
                 shadow-intensity="1"
                 environment-image="neutral"
                 alt="建物の3Dモデル">
@@ -396,6 +399,9 @@
         }
         window.launchAR = launchAR;
 
+        function showMvWrap()  { mvWrap.style.display = "";     mvWrap.classList.add("visible"); }
+        function hideMvWrap()  { mvWrap.style.display = "none"; mvWrap.classList.remove("visible"); }
+
         // ============================================================
         // [変更] refreshView — モデル切替時に iOS / Android / PC を分岐
         // ============================================================
@@ -417,7 +423,7 @@
                 launchArLink.href    = usdzPath;
                 launchArLink.style.display = "";
                 launchArBtn.style.display  = "none";
-                mvWrap.style.display       = "none";
+                hideMvWrap();
                 mvUnavailable.style.display = "none";
                 compatibilityChip.textContent = isIOSSafari() ? "Quick Look Ready" : "iOS Safari Required";
                 filePathNote.textContent = "USDZ: " + usdzPath;
@@ -430,7 +436,7 @@
                     mvEl.setAttribute("src",     model.glb);
                     mvEl.setAttribute("ios-src", usdzPath);
                     mvEl.setAttribute("alt",     model.title + " 3Dモデル");
-                    mvWrap.style.display        = "";
+                    showMvWrap();
                     mvUnavailable.style.display = "none";
                     launchArBtn.textContent     = "ARを見る";
                     launchArBtn.classList.remove("disabled");
@@ -438,7 +444,7 @@
                     filePathNote.textContent    = "GLB: " + model.glb;
                     document.getElementById("mv-label").textContent = model.title + "（タップして操作 / ARを見るでAR起動）";
                 } else {
-                    mvWrap.style.display        = "none";
+                    hideMvWrap();
                     mvUnavailable.style.display = "";
                     launchArBtn.textContent     = "GLB未設定（準備中）";
                     launchArBtn.classList.add("disabled");
@@ -455,7 +461,7 @@
                     mvEl.setAttribute("src",     model.glb);
                     mvEl.setAttribute("ios-src", usdzPath);
                     mvEl.setAttribute("alt",     model.title + " 3Dモデル");
-                    mvWrap.style.display        = "";
+                    showMvWrap();
                     mvUnavailable.style.display = "none";
                     launchArBtn.textContent     = "3Dで見る";
                     launchArBtn.classList.remove("disabled");
@@ -463,7 +469,7 @@
                     filePathNote.textContent    = "GLB: " + model.glb;
                     document.getElementById("mv-label").textContent = model.title + "（マウスでドラッグ回転・ホイールでズーム）";
                 } else {
-                    mvWrap.style.display        = "none";
+                    hideMvWrap();
                     mvUnavailable.style.display = "";
                     launchArBtn.textContent     = "GLB未設定（準備中）";
                     launchArBtn.classList.add("disabled");
