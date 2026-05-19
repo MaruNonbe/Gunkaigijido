@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>旧西置賜郡役所、初代／2代目西置賜郡会議事堂ARモデル</title>
+    <!-- ===== [追加] model-viewer ===== -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
     <style>
         :root { --bg:#08111c; --panel:#122235; --line:#28445f; --text:#f3f7fb; --muted:#a7b7c8; --accent:#0ea5e9; --accent2:#f97316; --ok:#10b981; --danger:#ef4444; }
         * { box-sizing:border-box; }
@@ -40,6 +42,27 @@
         .right { justify-content:space-between; align-items:center; }
         .hidden-ui .ui-group { display:none; }
         @media (max-width:860px) { .topbar,.grid,.survey-grid { grid-template-columns:1fr; } }
+
+        /* ===== [追加] model-viewer スタイル ===== */
+        #mv-wrap { margin-top:14px; display:none; }           /* JS で表示制御 */
+        model-viewer {
+            width:100%;
+            height:340px;
+            border-radius:14px;
+            border:1px solid rgba(194,223,255,.18);
+            background:#0b1624;
+            --progress-bar-color: var(--accent);
+        }
+        #mv-unavailable {
+            display:none;
+            margin-top:14px;
+            padding:18px 14px;
+            border-radius:14px;
+            text-align:center;
+            font-size:13px;
+            color:var(--muted);
+            border:1px dashed rgba(194,223,255,.2);
+        }
     </style>
 </head>
 <body>
@@ -47,7 +70,8 @@
         <div class="topbar panel">
             <div class="title">
                 <h1>旧西置賜郡役所、初代／2代目西置賜郡会議事堂ARモデル</h1>
-                <p>USDZ / Quick Look を使って、iPhone・iPad の Safari で AR 表示します。</p>
+                <!-- [変更] 端末別説明文 -->
+                <p id="subtitle-desc">読み込み中…</p>
             </div>
             <div class="row">
                 <button id="lang-Japanese" class="active ui-group" type="button" onclick="setLang('Japanese')">日本語</button>
@@ -63,16 +87,28 @@
                 <div>
                     <div class="eyebrow" id="model-label">MODEL</div>
                     <h2 id="hero-title">全体表示</h2>
-                    <p id="hero-description">Apple Quick Look を使い、選択した USDZ をシステム AR ビューアで開きます。</p>
+                    <p id="hero-description">モデルを選択してください。</p>
                     <div class="chips" style="margin-top:22px;">
-                        <div class="chip" id="compatibility-chip">Quick Look Ready</div>
-                        <div class="chip" id="anchor-chip">配置位置は Quick Look 内で調整</div>
-                        <div class="chip" id="transform-chip">回転・拡大縮小は Quick Look 内で操作</div>
+                        <div class="chip" id="compatibility-chip">読み込み中</div>
+                        <div class="chip" id="anchor-chip">配置位置は AR ビューア内で調整</div>
+                        <div class="chip" id="transform-chip">回転・拡大縮小は AR ビューア内で操作</div>
                     </div>
                     <p id="file-path-note" class="note" style="margin-top:14px;word-break:break-all;"></p>
                 </div>
                 <div class="row">
-                    <a id="launch-ar-link" class="button primary" rel="ar" href="all.usdz" aria-label="ARを見る">ARを見る</a>
+                    <!--
+                        [変更] iOS: rel="ar" による Quick Look リンク（非表示 img で Quick Look を有効化）
+                               Android/PC: onclick で launchAR() を呼ぶ通常ボタン
+                               JS で端末に応じて一方を表示する
+                    -->
+                    <!-- iOS Quick Look 用アンカー（iOS のみ表示） -->
+                    <a id="launch-ar-link" class="button primary" rel="ar" href="all.usdz" aria-label="ARを見る" style="display:none;">
+                        ARを見る
+                        <img src="" alt="" style="display:none;position:absolute;width:0;height:0;">
+                    </a>
+                    <!-- Android / PC 用ボタン（非iOS のみ表示） -->
+                    <button id="launch-ar-btn" class="primary" type="button" onclick="launchAR()" style="display:none;">ARを見る</button>
+
                     <button class="audio" type="button" onclick="playAudio(currentModelKey)">音声再生</button>
                     <button type="button" onclick="stopAllAudio()">音声停止</button>
                 </div>
@@ -118,8 +154,31 @@
             </aside>
         </div>
 
+        <!-- ===== [追加] model-viewer ブロック（Android / PC 用） ===== -->
+        <div id="mv-wrap" class="panel" style="padding:14px;">
+            <p style="margin:0 0 10px; font-size:12px; color:var(--muted);" id="mv-label">3Dモデルプレビュー</p>
+            <model-viewer
+                id="model-viewer-el"
+                src="Gun.glb"
+                ios-src="Gun.usdz"
+                ar
+                ar-modes="scene-viewer webxr"
+                camera-controls
+                auto-rotate
+                shadow-intensity="1"
+                environment-image="neutral"
+                alt="建物の3Dモデル">
+            </model-viewer>
+        </div>
+
+        <!-- ===== [追加] all.glb 未設定メッセージ（Android で all 選択時） ===== -->
+        <div id="mv-unavailable" class="panel">
+            📱 全体モデル（GLB）は準備中です。<br>
+            全体ARはiPhone / iPadのSafariでご覧ください。
+        </div>
+
         <div id="text-panel" class="panel text-panel ui-group"></div>
-        <div id="status-bar" class="status ui-group">Safari で「ARを見る」をタップすると Quick Look が起動します。</div>
+        <div id="status-bar" class="status ui-group">端末を確認しています…</div>
 
         <section class="survey ui-group">
             <div class="panel">
@@ -225,45 +284,86 @@
 
     <audio id="audio-player" preload="none"></audio>
     <script>
+        // ============================================================
+        // [変更] appData に glb パスを追加（all.glb は存在しないため null）
+        // ============================================================
         const appData = {
-            all: { label: "全体表示", usdz: "all.usdz", title: "全体表示" },
-            kozakura: { label: "旧西置賜郡役所", usdz: "Gun.usdz", title: "旧西置賜郡役所" },
-            "1st": { label: "初代議事堂", usdz: "1st.usdz", title: "初代議事堂" },
-            "2nd": { label: "二代目議事堂", usdz: "2nd.usdz", title: "二代目議事堂" }
+            all:      { label: "全体表示",       usdz: "all.usdz", glb: null,      title: "全体表示" },
+            kozakura: { label: "旧西置賜郡役所", usdz: "Gun.usdz", glb: "Gun.glb", title: "旧西置賜郡役所" },
+            "1st":    { label: "初代議事堂",     usdz: "1st.usdz", glb: "1st.glb", title: "初代議事堂" },
+            "2nd":    { label: "二代目議事堂",   usdz: "2nd.usdz", glb: "2nd.glb", title: "二代目議事堂" }
         };
         const descriptions = {
-            all: { Japanese: "3つの建物をまとめて表示します。重い場合は個別モデルを選んでください。", English: "Shows all three buildings together.", Chinese: "同时显示三座建筑。", Korean: "세 건물을 함께 표시합니다." },
+            all:      { Japanese: "3つの建物をまとめて表示します。重い場合は個別モデルを選んでください。", English: "Shows all three buildings together.", Chinese: "同时显示三座建筑。", Korean: "세 건물을 함께 표시합니다." },
             kozakura: { Japanese: "旧西置賜郡役所のARモデルです。", English: "Former district office.", Chinese: "旧西置赐郡役所。", Korean: "구 니시오키타마 군청." },
-            "1st": { Japanese: "初代旧西置賜郡会議事堂のARモデルです。", English: "First assembly hall.", Chinese: "初代会议事堂。", Korean: "초대 회의사당." },
-            "2nd": { Japanese: "二代目旧西置賜郡会議事堂のARモデルです。", English: "Second assembly hall.", Chinese: "第二代会议事堂。", Korean: "2대 회의사당." }
+            "1st":    { Japanese: "初代旧西置賜郡会議事堂のARモデルです。", English: "First assembly hall.", Chinese: "初代会议事堂。", Korean: "초대 회의사당." },
+            "2nd":    { Japanese: "二代目旧西置賜郡会議事堂のARモデルです。", English: "Second assembly hall.", Chinese: "第二代会议事堂。", Korean: "2대 회의사당." }
         };
         const audioFiles = { kozakura: "audio/Kozakura_", "1st": "audio/1st_NisiokitamaGunkai_", "2nd": "audio/2nd_NishiokitamaGUnkai_" };
         const locations = { current: "現在地の南東15m", tas: "TAS", office: "役所前広場" };
         const surveyConfig = { endpoint: "https://script.google.com/macros/s/AKfycbwgwKmn182INw30dpcm3Yaet4ZXZKyPzLpY1qOAX9kvENckPjZH4mBZg_E4aQ1w-qFg/exec", storageKey: "nishiokitama-ar-survey-draft", sessionKey: "nishiokitama-ar-session" };
 
-        const textPanel = document.getElementById("text-panel");
-        const statusBar = document.getElementById("status-bar");
-        const heroTitle = document.getElementById("hero-title");
-        const heroDescription = document.getElementById("hero-description");
-        const modelLabel = document.getElementById("model-label");
-        const launchArLink = document.getElementById("launch-ar-link");
+        // ============================================================
+        // DOM 参照
+        // ============================================================
+        const textPanel         = document.getElementById("text-panel");
+        const statusBar         = document.getElementById("status-bar");
+        const heroTitle         = document.getElementById("hero-title");
+        const heroDescription   = document.getElementById("hero-description");
+        const modelLabel        = document.getElementById("model-label");
+        const launchArLink      = document.getElementById("launch-ar-link");   // iOS用
+        const launchArBtn       = document.getElementById("launch-ar-btn");    // [追加] Android/PC用
         const compatibilityChip = document.getElementById("compatibility-chip");
-        const anchorChip = document.getElementById("anchor-chip");
-        const transformChip = document.getElementById("transform-chip");
-        const filePathNote = document.getElementById("file-path-note");
-        const audioPlayer = document.getElementById("audio-player");
-        const surveyForm = document.getElementById("survey-form");
-        const surveyStatus = document.getElementById("survey-status");
-        const surveySubmitButton = document.getElementById("survey-submit");
-        const surveyModelChip = document.getElementById("survey-model-chip");
-        const surveyDurationChip = document.getElementById("survey-duration-chip");
+        const anchorChip        = document.getElementById("anchor-chip");
+        const transformChip     = document.getElementById("transform-chip");
+        const filePathNote      = document.getElementById("file-path-note");
+        const audioPlayer       = document.getElementById("audio-player");
+        const surveyForm        = document.getElementById("survey-form");
+        const surveyStatus      = document.getElementById("survey-status");
+        const surveySubmitButton= document.getElementById("survey-submit");
+        const surveyModelChip   = document.getElementById("survey-model-chip");
+        const surveyDurationChip= document.getElementById("survey-duration-chip");
+        const mvWrap            = document.getElementById("mv-wrap");          // [追加]
+        const mvEl              = document.getElementById("model-viewer-el");  // [追加]
+        const mvUnavailable     = document.getElementById("mv-unavailable");   // [追加]
+        const subtitleDesc      = document.getElementById("subtitle-desc");    // [追加]
 
-        let currentLang = "Japanese";
+        // ============================================================
+        // [追加] 端末判定（3パターン）
+        // ============================================================
+        function isIOS() {
+            return /iPhone|iPad|iPod/.test(navigator.userAgent);
+        }
+        function isAndroid() {
+            return /Android/.test(navigator.userAgent);
+        }
+        function isIOSSafari() {
+            const ua = navigator.userAgent;
+            return /iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua);
+        }
+        // PC = iOS でも Android でもない
+        function isPC() {
+            return !isIOS() && !isAndroid();
+        }
+        // アンケート送信用デバイス種別文字列
+        function getDeviceType() {
+            if (isIOS())     return "iOS";
+            if (isAndroid()) return "Android";
+            return "PC";
+        }
+
+        // ============================================================
+        // 状態変数
+        // ============================================================
+        let currentLang     = "Japanese";
         let currentModelKey = "all";
-        let uiVisible = true;
-        let selectedAnchor = "office";
-        let surveySession = loadSurveySession();
+        let uiVisible       = true;
+        let selectedAnchor  = "office";
+        let surveySession   = loadSurveySession();
 
+        // ============================================================
+        // ユーティリティ
+        // ============================================================
         function setStatus(message) { statusBar.textContent = message; }
         function setSurveyStatus(message, isError = false) { surveyStatus.textContent = message; surveyStatus.style.color = isError ? "#fecaca" : "#d6f2ff"; }
         function createSurveySession(modelKey = currentModelKey) { return { sessionId: Math.random().toString(36).slice(2, 10) + Date.now().toString(36), startedAt: Date.now(), modelKey }; }
@@ -273,49 +373,232 @@
         function getSurveyDurationSeconds() { return surveySession.startedAt ? Math.max(0, Math.round((Date.now() - surveySession.startedAt) / 1000)) : ""; }
         function updateSurveyMeta() { surveyModelChip.textContent = "Model: " + appData[currentModelKey].label; const d = getSurveyDurationSeconds(); surveyDurationChip.textContent = d ? "AR time: " + d + " sec" : "AR time: not started"; }
         function noteArLaunch() { surveySession = createSurveySession(currentModelKey); saveSurveySession(); updateSurveyMeta(); setSurveyStatus("AR start time recorded."); }
-        function isIOSSafari() { const ua = navigator.userAgent; return /iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(ua); }
         function getCurrentDescription() { return (descriptions[currentModelKey] || descriptions.all)[currentLang] || descriptions[currentModelKey].Japanese; }
+
+        // ============================================================
+        // [追加] AR 起動（Android / PC 用ボタンから呼ばれる）
+        // ============================================================
+        function launchAR() {
+            noteArLaunch();
+            const model = appData[currentModelKey];
+            if (isAndroid()) {
+                if (!model.glb) {
+                    setStatus("全体モデルのGLBは準備中です。iPhoneでご利用ください。");
+                    return;
+                }
+                // model-viewer の AR を起動（Scene Viewer / WebXR）
+                mvEl.activateAR();
+            } else {
+                // PC: model-viewer へスクロール
+                mvWrap.scrollIntoView({ behavior: "smooth", block: "start" });
+                setStatus("3Dプレビューをご覧ください。PCではAR表示はできません。");
+            }
+        }
+        window.launchAR = launchAR;
+
+        // ============================================================
+        // [変更] refreshView — モデル切替時に iOS / Android / PC を分岐
+        // ============================================================
         function refreshView() {
             const model = appData[currentModelKey];
-            const resolvedUrl = new URL(model.usdz, window.location.href).href;
-            heroTitle.textContent = model.title;
+            // [修正] new URL() を廃止 — ローカル(file://)・GitHub Pages どちらでも動作するよう
+            //        パス文字列をそのまま使用する
+            const usdzPath     = model.usdz;
+            const glbAvailable = !!model.glb;
+
+            // 共通テキスト更新
+            heroTitle.textContent       = model.title;
             heroDescription.textContent = getCurrentDescription();
-            modelLabel.textContent = model.label.toUpperCase();
-            textPanel.textContent = getCurrentDescription();
-            launchArLink.href = resolvedUrl;
-            compatibilityChip.textContent = isIOSSafari() ? "Quick Look Ready" : "iOS Safari Required";
-            anchorChip.textContent = "配置候補: " + locations[selectedAnchor];
-            transformChip.textContent = "回転・拡大縮小は Quick Look 内で操作";
-            filePathNote.textContent = "USDZ: " + resolvedUrl;
+            modelLabel.textContent      = model.label.toUpperCase();
+            textPanel.textContent       = getCurrentDescription();
+
+            // ----- iOS -----
+            if (isIOS()) {
+                launchArLink.href    = usdzPath;
+                launchArLink.style.display = "";
+                launchArBtn.style.display  = "none";
+                mvWrap.style.display       = "none";
+                mvUnavailable.style.display = "none";
+                compatibilityChip.textContent = isIOSSafari() ? "Quick Look Ready" : "iOS Safari Required";
+                filePathNote.textContent = "USDZ: " + usdzPath;
+
+            // ----- Android -----
+            } else if (isAndroid()) {
+                launchArLink.style.display = "none";
+                launchArBtn.style.display  = "";
+                if (glbAvailable) {
+                    mvEl.setAttribute("src",     model.glb);
+                    mvEl.setAttribute("ios-src", usdzPath);
+                    mvEl.setAttribute("alt",     model.title + " 3Dモデル");
+                    mvWrap.style.display        = "";
+                    mvUnavailable.style.display = "none";
+                    launchArBtn.textContent     = "ARを見る";
+                    launchArBtn.classList.remove("disabled");
+                    launchArBtn.disabled        = false;
+                    filePathNote.textContent    = "GLB: " + model.glb;
+                    document.getElementById("mv-label").textContent = model.title + "（タップして操作 / ARを見るでAR起動）";
+                } else {
+                    mvWrap.style.display        = "none";
+                    mvUnavailable.style.display = "";
+                    launchArBtn.textContent     = "GLB未設定（準備中）";
+                    launchArBtn.classList.add("disabled");
+                    launchArBtn.disabled        = true;
+                    filePathNote.textContent    = "USDZ: " + usdzPath + "（Android GLB: 未設定）";
+                }
+                compatibilityChip.textContent = glbAvailable ? "Scene Viewer / WebXR Ready" : "Android GLB 準備中";
+
+            // ----- PC -----
+            } else {
+                launchArLink.style.display = "none";
+                launchArBtn.style.display  = "";
+                if (glbAvailable) {
+                    mvEl.setAttribute("src",     model.glb);
+                    mvEl.setAttribute("ios-src", usdzPath);
+                    mvEl.setAttribute("alt",     model.title + " 3Dモデル");
+                    mvWrap.style.display        = "";
+                    mvUnavailable.style.display = "none";
+                    launchArBtn.textContent     = "3Dで見る";
+                    launchArBtn.classList.remove("disabled");
+                    launchArBtn.disabled        = false;
+                    filePathNote.textContent    = "GLB: " + model.glb;
+                    document.getElementById("mv-label").textContent = model.title + "（マウスでドラッグ回転・ホイールでズーム）";
+                } else {
+                    mvWrap.style.display        = "none";
+                    mvUnavailable.style.display = "";
+                    launchArBtn.textContent     = "GLB未設定（準備中）";
+                    launchArBtn.classList.add("disabled");
+                    launchArBtn.disabled        = true;
+                    filePathNote.textContent    = "USDZ: " + usdzPath + "（PC GLB: 未設定）";
+                }
+                compatibilityChip.textContent = glbAvailable ? "3D Preview Ready" : "GLB 準備中";
+            }
+
+            anchorChip.textContent    = "配置候補: " + locations[selectedAnchor];
+            transformChip.textContent = "回転・拡大縮小は AR ビューア内で操作";
             updateSurveyMeta();
         }
-        function switchModel(key) { currentModelKey = key; document.querySelectorAll("button[id^='m-']").forEach((b) => b.classList.remove("active")); document.getElementById("m-" + key).classList.add("active"); refreshView(); setStatus(appData[key].label + " を選択しました。"); }
+
+        // ============================================================
+        // switchModel / setLang（既存と同じ、refreshView 呼び出し）
+        // ============================================================
+        function switchModel(key) {
+            currentModelKey = key;
+            document.querySelectorAll("button[id^='m-']").forEach((b) => b.classList.remove("active"));
+            document.getElementById("m-" + key).classList.add("active");
+            refreshView();
+            setStatus(appData[key].label + " を選択しました。");
+        }
         window.switchModel = switchModel;
-        function setLang(lang) { currentLang = lang; document.querySelectorAll("button[id^='lang-']").forEach((b) => b.classList.remove("active")); document.getElementById("lang-" + lang).classList.add("active"); refreshView(); setStatus("表示言語を切り替えました。"); }
+
+        function setLang(lang) {
+            currentLang = lang;
+            document.querySelectorAll("button[id^='lang-']").forEach((b) => b.classList.remove("active"));
+            document.getElementById("lang-" + lang).classList.add("active");
+            refreshView();
+            setStatus("表示言語を切り替えました。");
+        }
         window.setLang = setLang;
+
+        // ============================================================
+        // 音声・UI・アンケート（既存のまま保持）
+        // ============================================================
         function playAudio(key) { if (!audioFiles[key]) { setStatus("このモデルには音声がありません。"); return; } audioPlayer.src = audioFiles[key] + currentLang + ".wav"; audioPlayer.play().then(() => setStatus("音声を再生しています。")).catch(() => setStatus("音声の再生に失敗しました。")); }
         window.playAudio = playAudio;
+
         function stopAllAudio() { audioPlayer.pause(); audioPlayer.currentTime = 0; setStatus("音声を停止しました。"); }
         window.stopAllAudio = stopAllAudio;
+
         function setAnchorLocation(type) { selectedAnchor = type; document.querySelectorAll("button[id^='btn-']").forEach((b) => b.classList.remove("active")); document.getElementById("btn-" + type).classList.add("active"); refreshView(); setStatus(locations[type] + " を基準候補として表示しています。"); }
         window.setAnchorLocation = setAnchorLocation;
-        function showUnsupported(kind) { const messages = { rotation: "回転は Quick Look 内で行ってください。", height: "高さ調整は Quick Look 側で行ってください。", scale: "サイズ調整は Quick Look 側で行ってください。" }; setStatus(messages[kind] || "この操作は Quick Look 内で行ってください。"); }
+
+        function showUnsupported(kind) { const messages = { rotation: "回転は AR ビューア内で行ってください。", height: "高さ調整は AR ビューア側で行ってください。", scale: "サイズ調整は AR ビューア側で行ってください。" }; setStatus(messages[kind] || "この操作は AR ビューア内で行ってください。"); }
         window.showUnsupported = showUnsupported;
+
         function toggleUi() { uiVisible = !uiVisible; document.body.classList.toggle("hidden-ui", !uiVisible); document.getElementById("ui-toggle").textContent = uiVisible ? "UI OFF" : "UI ON"; }
         window.toggleUi = toggleUi;
+
         function scrollToSurvey() { surveyForm.scrollIntoView({ behavior: "smooth", block: "start" }); }
         window.scrollToSurvey = scrollToSurvey;
+
         function resetSurveyDraft() { surveyForm.reset(); clearSurveyDraft(); surveySession = createSurveySession(currentModelKey); saveSurveySession(); updateSurveyMeta(); setSurveyStatus("Survey form cleared."); }
         window.resetSurveyDraft = resetSurveyDraft;
-        function saveSurveyDraft() { const data = {}; new FormData(surveyForm).forEach((v, k) => { data[k] = v; }); localStorage.setItem(surveyConfig.storageKey, JSON.stringify(data)); }
-        function loadSurveyDraft() { try { const raw = localStorage.getItem(surveyConfig.storageKey); if (!raw) return; const data = JSON.parse(raw); Object.entries(data).forEach(([k, v]) => surveyForm.querySelectorAll(`[name="${k}"]`).forEach((el) => { if (el.type === "radio") el.checked = el.value === v; else el.value = v; })); } catch {} }
-        function collectSurveyPayload() { const formData = new FormData(surveyForm); return { timestamp: new Date().toISOString(), session_id: surveySession.sessionId, model_name: currentModelKey, age_group: formData.get("age_group") || "", gender: formData.get("gender") || "", visitor_area: formData.get("visitor_area") || "", ar_experience: formData.get("ar_experience") || "", ease_of_use: formData.get("ease_of_use") || "", stability: formData.get("stability") || "", impression: formData.get("impression") || "", free_good: formData.get("free_good") || "", free_problem: formData.get("free_problem") || "", free_request: formData.get("free_request") || "", ar_duration_sec: getSurveyDurationSeconds(), device_type: /iPhone|iPad|iPod/.test(navigator.userAgent) ? "iOS" : "Other", language: currentLang, page_url: window.location.href, user_agent: navigator.userAgent }; }
-        async function submitSurvey(event) { event.preventDefault(); saveSurveyDraft(); surveySubmitButton.disabled = true; setSurveyStatus("Sending survey..."); try { await fetch(surveyConfig.endpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(collectSurveyPayload()) }); surveyForm.reset(); clearSurveyDraft(); surveySession = createSurveySession(currentModelKey); saveSurveySession(); updateSurveyMeta(); setSurveyStatus("Survey sent. Thank you."); } catch { setSurveyStatus("Survey send failed.", true); } finally { surveySubmitButton.disabled = false; } }
 
+        function saveSurveyDraft() { const data = {}; new FormData(surveyForm).forEach((v, k) => { data[k] = v; }); localStorage.setItem(surveyConfig.storageKey, JSON.stringify(data)); }
+
+        function loadSurveyDraft() { try { const raw = localStorage.getItem(surveyConfig.storageKey); if (!raw) return; const data = JSON.parse(raw); Object.entries(data).forEach(([k, v]) => surveyForm.querySelectorAll(`[name="${k}"]`).forEach((el) => { if (el.type === "radio") el.checked = el.value === v; else el.value = v; })); } catch {} }
+
+        function collectSurveyPayload() {
+            const formData = new FormData(surveyForm);
+            return {
+                timestamp:      new Date().toISOString(),
+                session_id:     surveySession.sessionId,
+                model_name:     currentModelKey,
+                age_group:      formData.get("age_group")    || "",
+                gender:         formData.get("gender")       || "",
+                visitor_area:   formData.get("visitor_area") || "",
+                ar_experience:  formData.get("ar_experience")|| "",
+                ease_of_use:    formData.get("ease_of_use")  || "",
+                stability:      formData.get("stability")    || "",
+                impression:     formData.get("impression")   || "",
+                free_good:      formData.get("free_good")    || "",
+                free_problem:   formData.get("free_problem") || "",
+                free_request:   formData.get("free_request") || "",
+                ar_duration_sec:getSurveyDurationSeconds(),
+                // [変更] iOS / Android / PC の3種類に詳細化
+                device_type:    getDeviceType(),
+                language:       currentLang,
+                page_url:       window.location.href,
+                user_agent:     navigator.userAgent
+            };
+        }
+
+        async function submitSurvey(event) {
+            event.preventDefault();
+            saveSurveyDraft();
+            surveySubmitButton.disabled = true;
+            setSurveyStatus("Sending survey...");
+            try {
+                await fetch(surveyConfig.endpoint, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(collectSurveyPayload()) });
+                surveyForm.reset();
+                clearSurveyDraft();
+                surveySession = createSurveySession(currentModelKey);
+                saveSurveySession();
+                updateSurveyMeta();
+                setSurveyStatus("Survey sent. Thank you.");
+            } catch {
+                setSurveyStatus("Survey send failed.", true);
+            } finally {
+                surveySubmitButton.disabled = false;
+            }
+        }
+
+        // ============================================================
+        // [追加] 初期化 — 端末別サブタイトルとステータス設定
+        // ============================================================
+        function initDeviceUI() {
+            if (isIOS()) {
+                subtitleDesc.textContent = "iPhone・iPad の Safari で USDZ / Quick Look AR 表示します。";
+                setStatus("Safari で「ARを見る」をタップすると Quick Look が起動します。");
+            } else if (isAndroid()) {
+                subtitleDesc.textContent = "Android Chrome で GLB / Scene Viewer AR 表示します。";
+                setStatus("「ARを見る」をタップすると Scene Viewer または WebXR が起動します。");
+            } else {
+                subtitleDesc.textContent = "PC ブラウザでは GLB の 3D プレビューを表示します（AR 非対応）。";
+                setStatus("「3Dで見る」をクリックすると 3D プレビューへスクロールします。");
+            }
+        }
+
+        // ============================================================
+        // イベントリスナー & 初期化実行
+        // ============================================================
+        // iOS Quick Look リンク用（既存のnoteArLaunch流用）
         launchArLink.addEventListener("click", noteArLaunch);
+
         surveyForm.addEventListener("submit", submitSurvey);
-        surveyForm.addEventListener("input", saveSurveyDraft);
+        surveyForm.addEventListener("input",  saveSurveyDraft);
+
         loadSurveyDraft();
+        initDeviceUI();
         setAnchorLocation("office");
         switchModel("all");
     </script>
